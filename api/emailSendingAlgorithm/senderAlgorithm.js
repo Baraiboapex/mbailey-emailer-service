@@ -1,6 +1,8 @@
 
+const nodemailer = require('nodemailer');
 
 async function startEmailQueue({
+    messageSenderAdress,
     emailSubject,
     emailMessage,
     emailTemplate,
@@ -16,6 +18,7 @@ async function startEmailQueue({
       currentIndex++;
       const emailAddress = peopleToSendEmailTo[i][2];
       sendEmail({
+        messageSenderAdress,
         emailSubject,
         emailAddress,
         emailMessage,
@@ -36,19 +39,31 @@ function pauseSendingAlgorithm(){
 }
 
 function sendEmail({
+    messageSenderAdress,
     emailAddress,
     emailSubject,
     emailMessage,
     emailTemplate
 }){
-    return new Promise((resolve, reject)=>{
+    return new Promise(async (resolve, reject)=>{
         console.log("Sent an email!");
         console.table({ 
+            messageSenderAdress,
             emailAddress,
             emailSubject, 
             emailMessage,
             emailTemplate
         });
+        
+        const emailSender =  nodemailer.createTransport({
+            service: 'gmail',
+                auth: {
+                    user: messageSenderAddress,
+                    pass: process.env.EMAILER_SERVICE_PASSWORD
+                }
+            }
+        );
+
         resolve();
     });
 }
