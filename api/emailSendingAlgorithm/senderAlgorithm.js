@@ -1,6 +1,6 @@
 
 
-function startEmailQueue({
+async function startEmailQueue({
     emailSubject,
     emailMessage,
     emailTemplate,
@@ -9,9 +9,11 @@ function startEmailQueue({
   const amountOfEmailsSentBeforePause = 50;
   
   let currentIndex = 0;
-  
-  while(currentIndex <= peopleToSendEmailTo.length){
-    for(let i = 0; i <= amountOfEmailsSentBeforePause; i++){
+  let setStartingIndex = 0;
+
+  while(setStartingIndex < peopleToSendEmailTo.length){
+    for(let i = setStartingIndex; i <= amountOfEmailsSentBeforePause; i++){
+      currentIndex++;
       const emailAddress = peopleToSendEmailTo[i][2];
       sendEmail({
         emailSubject,
@@ -20,6 +22,8 @@ function startEmailQueue({
         emailTemplate
       });
     }
+    setStartingIndex = currentIndex;
+    await pauseSendingAlgorithm();
   }
 }
 
