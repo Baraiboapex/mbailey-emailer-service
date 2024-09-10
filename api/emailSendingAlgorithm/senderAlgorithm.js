@@ -1,5 +1,8 @@
 
 const nodemailer = require('nodemailer');
+const templateGenerator = require("../emailTemplates/templateGenerator.js");
+
+const {generateHTMLTemplate} = templateGenerator;
 
 async function startEmailQueue({
     messageSenderAdress,
@@ -7,6 +10,7 @@ async function startEmailQueue({
     emailMessage,
     emailTemplate,
     peopleToSendEmailTo,
+    emailData
 }){
   const amountOfEmailsSentBeforePause = 50;
   
@@ -17,12 +21,13 @@ async function startEmailQueue({
     for(let i = setStartingIndex; i <= amountOfEmailsSentBeforePause; i++){
       currentIndex++;
       const emailAddress = peopleToSendEmailTo[i][2];
-      sendEmail({
+      await sendEmail({
         messageSenderAdress,
         emailSubject,
         emailAddress,
         emailMessage,
-        emailTemplate
+        emailTemplate,
+        emailData
       });
     }
     setStartingIndex = currentIndex;
@@ -42,32 +47,49 @@ function sendEmail({
     messageSenderAdress,
     emailAddress,
     emailSubject,
-    emailMessage,
-    emailTemplate
+    emailTemplate,
+    emailData
 }){
     return new Promise(async (resolve, reject)=>{
-        console.log("Sent an email!");
-        console.table({ 
-            messageSenderAdress,
-            emailAddress,
-            emailSubject, 
-            emailMessage,
-            emailTemplate
-        });
-        
-        const emailSender =  nodemailer.createTransport({
-            service: 'gmail',
-                auth: {
-                    user: messageSenderAddress,
-                    pass: process.env.EMAILER_SERVICE_PASSWORD
+        try{
+            const currentEmailTemplate = generateHTMLTemplate({
+                templateName:emailTemplate,
+                emailData
+            });
+            const emailSenderConfig =  nodemailer.createTransport({
+                service: 'gmail',
+                    auth: {
+                        user: messageSenderAddress,
+                        pass: process.env.EMAILER_SERVICE_PASSWORD
+                    }
                 }
-            }
-        );
+            );
 
-        resolve();
+            const mailToOptions = {
+                from:  messageSenderAdress,
+                to: emailAddress,
+                subject: emailSubject,
+                html: currentEmailTemplate
+            };
+
+            const emailSenderHandler = nodemailer.createTransport(emailSenderConfig) ;
+
+            emailSenderHandler.sendMail(mailToOptions, (err,info)=>{
+                if(err){
+                    throw err;
+                }else{
+                    resolve();
+                }
+            });
+        }catch(err){
+            reject(err);
+        }
     });
 }
 
-export default {
+const emailSender = {
     startEmailQueue
-} 
+}
+
+export default emailSender;
+

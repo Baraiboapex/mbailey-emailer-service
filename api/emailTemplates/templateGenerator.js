@@ -1,21 +1,19 @@
 const {readHtml} = require("../helpers/fileHelpers")
+const handlebars = require('handlebars');
 
 async function generateHTMLTemplate({
     templateName,
     emailData
 }){
-    
-    const emailHTMLTemplate = await readHtml(__dirname+"/"+templateName+",html");
-
-    return new Promise((resolve, reject)=>{
-        emailHTMLTemplate.htmlOutputFunc((err, html)=>{
+    return new Promise(async (resolve, reject)=>{
+        const emailHTMLTemplate = await readHtml(__dirname+"/"+templateName+",html");
+        emailHTMLTemplate.htmlOutputFunc((err, htmlOut)=>{
             try{
-                const htmlTemplate = html;
-                const loadedEmailTemplate = loadEmailTemplateData({
+                const emailTemplate = loadEmailTemplateData({
                     emailData,
-                    htmlTemplate
+                    htmlTemplate:htmlOut
                 });
-                resolve(loadedEmailTemplate);
+                resolve(emailTemplate);
             }catch(err){
                 if(err.errorFunc){
                     reject(err.errorFunc());
@@ -31,15 +29,20 @@ function loadEmailTemplateData({
     emailData,
     htmlTemplate
 }){
-    let currentTemplate = htmlTemplate;
+    const temp = handlebars.compile(htmlTemplate);
+    const templateVarsToReplace = {};
 
     Object.keys(emailData).forEach(key=>{
-        currentTemplate = htmlTemplate.replace("{{"+key+"}}",emailData[key]);
+        templateVarsToReplace[key] = emailData[key]; 
     });
 
-    return currentTemplate;
+    const finalTemplate = temp(templateVarsToReplace);
+
+    return finalTemplate;
 }
 
-export default {
+const templateGenerator = {
     generateHTMLTemplate
 }
+
+export default templateGenerator;
