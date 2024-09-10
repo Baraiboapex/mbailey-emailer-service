@@ -7,32 +7,45 @@ const {generateHTMLTemplate} = templateGenerator;
 async function startEmailQueue({
     messageSenderAdress,
     emailSubject,
-    emailMessage,
     emailTemplate,
     peopleToSendEmailTo,
     emailData
 }){
-  const amountOfEmailsSentBeforePause = 50;
+    return new Promise(async (resolve,reject)=>{
+        try{
+            const amountOfEmailsSentBeforePause = 50;
   
-  let currentIndex = 0;
-  let setStartingIndex = 0;
+            let currentIndex = 0;
+            let setStartingIndex = 0;
 
-  while(setStartingIndex < peopleToSendEmailTo.length){
-    for(let i = setStartingIndex; i <= amountOfEmailsSentBeforePause; i++){
-      currentIndex++;
-      const emailAddress = peopleToSendEmailTo[i][2];
-      await sendEmail({
-        messageSenderAdress,
-        emailSubject,
-        emailAddress,
-        emailMessage,
-        emailTemplate,
-        emailData
-      });
-    }
-    setStartingIndex = currentIndex;
-    await pauseSendingAlgorithm();
-  }
+            while(setStartingIndex < peopleToSendEmailTo.length){
+                for(let i = setStartingIndex; i <= amountOfEmailsSentBeforePause; i++){
+                    currentIndex++;
+                    const emailAddress = peopleToSendEmailTo[i][2];
+                    await sendEmail({
+                        messageSenderAdress,
+                        emailSubject,
+                        emailAddress,
+                        emailTemplate,
+                        emailData
+                    });
+                }
+                setStartingIndex = currentIndex;
+                await pauseSendingAlgorithm();
+            }
+
+            resolve({
+                success:true,
+                successMessage:"Emails sent to students!"
+            });
+        }catch(err){
+            reject({
+                success:false,
+                errorMessage:err
+            })
+        }
+    });
+    
 }
 
 function pauseSendingAlgorithm(){

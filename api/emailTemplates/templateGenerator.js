@@ -1,6 +1,10 @@
 const {readHtml} = require("../helpers/fileHelpers")
 const handlebars = require('handlebars');
 
+const EMAIL_DATA_KEYS_TO_IGNORE = [
+    "subject"
+];
+
 async function generateHTMLTemplate({
     templateName,
     emailData
@@ -31,9 +35,11 @@ function loadEmailTemplateData({
 }){
     const temp = handlebars.compile(htmlTemplate);
     const templateVarsToReplace = {};
-
+    
     Object.keys(emailData).forEach(key=>{
-        templateVarsToReplace[key] = emailData[key]; 
+        if(!EMAIL_DATA_KEYS_TO_IGNORE.includes(key)){
+            templateVarsToReplace[key] = emailData[key];
+        }
     });
 
     const finalTemplate = temp(templateVarsToReplace);
