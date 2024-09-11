@@ -139,8 +139,6 @@ const {
             let currentIndex = 0;
             let timesSent = 0;
 
-            console.log("TEST !!!!!");
-
             const isNotEndOfEmailList = currentIndex <= emailListLength;
                             
             const emailSenderConfig = {
