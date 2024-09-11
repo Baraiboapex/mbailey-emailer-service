@@ -26,8 +26,7 @@ app.post("/sendEmail",async (req, res)=>{
         };
 
         const emailerProcessDone = await startEmailQueue(buildEmailData);
-        console.log("process ==> ", emailerProcessDone);
-
+        
         if(emailerProcessDone.success){
             res.status(200).send(JSON.stringify(emailerProcessDone));
         }else{

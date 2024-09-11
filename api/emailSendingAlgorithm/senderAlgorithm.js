@@ -18,19 +18,6 @@ const {
     }){
         return new Promise(async (resolve,reject)=>{
             try{
-                const emailSenderConfig = {
-                    service: 'gmail',
-                    secure: true,
-                    pool: true,
-                    host: 'smtp.gmail.com',
-                    port: 465,
-                    auth: {
-                        user: messageSenderAddress,
-                        pass: process.env.EMAILER_SERVICE_PASSWORD
-                    }
-                };
-
-                const emailSender =  nodemailer.createTransport(emailSenderConfig);
 
                 const emailerWorker = new Worker(__filename,{
                     workerData:{
@@ -38,14 +25,14 @@ const {
                         emailSubject,
                         emailTemplate,
                         peopleToSendEmailTo,
-                        emailData,
-                        emailSender
+                        emailData
                     }
                 });
                 emailerWorker.on('message', (value)=>{
                     console.log(value);
                 });
                 emailerWorker.on('error', (err)=>{
+                    console.log(err);
                     console.log(JSON.parse(err));
                 });
                 emailerWorker.on('exit', (code) => {
@@ -61,6 +48,7 @@ const {
                     message:"Sending your emails!"
                 });
             }catch(err){
+                console.log(err);
                 reject({
                     success:false,
                     errorMessage:"Could not send Emails"
@@ -78,8 +66,7 @@ const {
         emailSubject,
         emailTemplate,
         peopleToSendEmailTo,
-        emailData,
-        emailSender
+        emailData
     } = workerData;
 
     const workerDataToLoad = {
@@ -87,8 +74,7 @@ const {
         emailSubject,
         emailTemplate,
         peopleToSendEmailTo,
-        emailData,
-        emailSender
+        emailData
     }
 
     function pauseSendingAlgorithm(){
@@ -130,6 +116,7 @@ const {
                     }
                 });
             }catch(err){
+                console.log("ERROR: ", err);
                 throw new Error(JSON.stringify({
                     success:false,
                     errorMessage:err
@@ -144,7 +131,6 @@ const {
         emailTemplate,
         peopleToSendEmailTo,
         emailData,
-        emailSender
     }){
         try{
             const amountOfEmailsSentBeforePause = 10;
@@ -153,7 +139,23 @@ const {
             let currentIndex = 0;
             let timesSent = 0;
 
+            console.log("TEST !!!!!");
+
             const isNotEndOfEmailList = currentIndex <= emailListLength;
+                            
+            const emailSenderConfig = {
+                service: 'gmail',
+                secure: true,
+                pool: true,
+                host: 'smtp.gmail.com',
+                port: 465,
+                auth: {
+                    user: messageSenderAddress,
+                    pass: process.env.EMAILER_SERVICE_PASSWORD
+                }
+            };
+
+            const emailSender =  nodemailer.createTransport(emailSenderConfig);
 
             while(isNotEndOfEmailList){
                 for(let i = 0; i <= amountOfEmailsSentBeforePause; i++){
