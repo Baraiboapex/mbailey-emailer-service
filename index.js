@@ -1,9 +1,17 @@
 
 const express = require("express");
+const cors = require("cors");
+
 require("dotenv").config();
 const ex_app = express();
 
 const mainService = require("./api/emailerService");
+
+ex_app.use(cors({
+    origin:"*",
+    allowedHeaders:"Content-Type",
+    methods:"POST"
+}));
 
 ex_app.use("/", mainService);
 

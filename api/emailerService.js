@@ -1,10 +1,10 @@
-const express = require("express");
-const app = express.Router();
 const emailSender = require("./emailSendingAlgorithm/senderAlgorithm");
 const jsonHelper = require("./helpers/jsonHelpers");
-const testData = require("./testData/testData");
 
-app.use(express.json());
+const express = require("express");
+const app = express.Router();
+
+app.use(express.text());
 
 app.post("/sendEmail",async (req, res)=>{
     
@@ -15,7 +15,7 @@ app.post("/sendEmail",async (req, res)=>{
             emailData, 
             emailSubject,
             peopleToEmail
-        } = req.body;
+        } = JSON.parse(req.body);
 
         const buildEmailData = {
             messageSenderAddress:process.env.EMAILER_SERVICE_EMAIL,
@@ -24,6 +24,8 @@ app.post("/sendEmail",async (req, res)=>{
             emailSubject,
             peopleToSendEmailTo:peopleToEmail
         };
+        
+        console.log(req.body, peopleToEmail);
 
         const emailerProcessDone = await startEmailQueue(buildEmailData);
         

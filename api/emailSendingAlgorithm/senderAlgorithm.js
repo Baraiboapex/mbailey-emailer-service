@@ -133,14 +133,12 @@ const {
         emailData,
     }){
         try{
-            const amountOfEmailsSentBeforePause = 10;
+            const amountOfEmailsSentBeforePause = (peopleToSendEmailTo.length < 10 ? peopleToSendEmailTo.length : 10);
             const emailListLength = peopleToSendEmailTo.length;
             
             let currentIndex = 0;
             let timesSent = 0;
 
-            const isNotEndOfEmailList = currentIndex <= emailListLength;
-                            
             const emailSenderConfig = {
                 service: 'gmail',
                 secure: true,
@@ -154,29 +152,37 @@ const {
             };
 
             const emailSender =  nodemailer.createTransport(emailSenderConfig);
-
-            while(isNotEndOfEmailList){
+            
+            while(emailListLength >= currentIndex + 1){
                 for(let i = 0; i <= amountOfEmailsSentBeforePause; i++){
-                    timesSent++;
-                    const emailAddress = peopleToSendEmailTo[i][2];
+                    
+                    if(peopleToSendEmailTo[i]){
+                        timesSent++;
+                        const emailAddress = peopleToSendEmailTo[i][2];
 
-                    await sendEmail({
-                        messageSenderAddress,
-                        emailSubject,
-                        emailAddress,
-                        emailTemplate,
-                        emailData,
-                        emailSender
-                    });
-    
-                    console.log("Times Sent" + timesSent);
-    
-                    if(timesSent >= amountOfEmailsSentBeforePause){
-                        await pauseSendingAlgorithm();
-                        timesSent = 0;
+                        await sendEmail({
+                            messageSenderAddress,
+                            emailSubject,
+                            emailAddress,
+                            emailTemplate,
+                            emailData,
+                            emailSender
+                        });
+        
+                        console.log("Times Sent" + timesSent);
+        
+                        if(timesSent >= amountOfEmailsSentBeforePause){
+                            await pauseSendingAlgorithm();
+                            timesSent = 0;
+                        }
+
+                        currentIndex++;
+                        console.log(currentIndex);
+                        console.log(emailListLength >= currentIndex);
+                    }else{
+                        break;
                     }
-
-                    currentIndex++;
+                    
                 }
             }
            
