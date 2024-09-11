@@ -1,18 +1,22 @@
 const fs = require('fs');
 
-function readHtml(path, callWhenDone){
-    fs.readFile(path,{encoding:"utf-8"},(caughtError, HTMLOutput)=>{(
-        caughtError ?
-        Promise.reject({
-            errorFunc:callWhenDone(caughtError)
-        })
-        :
-        Promise.resolve({
-            htmlOutputFunc:callWhenDone(null, HTMLOutput)
-        })
-    )});
+function readHtml(path){
+    return new Promise((resolve,reject)=>{
+        fs.readFile(path,{encoding:"utf-8"},(caughtError, HTMLOutput)=>{
+            return(
+                caughtError ?
+                reject({
+                    errorFunc:()=>caughtError
+                })
+                :
+                resolve({
+                    htmlOutputFunc:()=>HTMLOutput
+                })
+            );
+        });
+    });
 }
 
-export default {
+module.exports =  {
     readHtml
 }

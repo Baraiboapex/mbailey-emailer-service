@@ -10,22 +10,37 @@ async function generateHTMLTemplate({
     emailData
 }){
     return new Promise(async (resolve, reject)=>{
-        const emailHTMLTemplate = await readHtml(__dirname+"/"+templateName+",html");
-        emailHTMLTemplate.htmlOutputFunc((err, htmlOut)=>{
-            try{
-                const emailTemplate = loadEmailTemplateData({
-                    emailData,
-                    htmlTemplate:htmlOut
-                });
-                resolve(emailTemplate);
-            }catch(err){
-                if(err.errorFunc){
-                    reject(err.errorFunc());
+        const emailHTMLTemplate = await readHtml(__dirname+"/"+templateName+".html");
+        if(emailHTMLTemplate)
+        {
+            if(emailHTMLTemplate.htmlOutputFunc){
+                try{
+                    const emailTemplate = loadEmailTemplateData({
+                        emailData,
+                        htmlTemplate:emailHTMLTemplate.htmlOutputFunc()
+                    });
+                    resolve(emailTemplate);
+                }catch(err){
+                    if(err.errorFunc){
+                        reject(err.errorFunc());
+                    }else{
+                        reject(err);
+                    }
+                }
+            }else{
+                if(emailHTMLTemplate.errorFunc)
+                {
+                    console.log(emailHTMLTemplate.errorFunc());
+                    reject(emailHTMLTemplate.errorFunc());
                 }else{
-                    reject(err);
+                    console.log("child data does not exist for emailHTMLTemplate");
+                    reject("child data does not exist for emailHTMLTemplate");
                 }
             }
-        });
+        }else{
+            console.log("emailHTMLTemplate is null or does not exist");
+            reject("emailHTMLTemplate is null or does not exist");
+        }
     });
 }
 
@@ -51,4 +66,4 @@ const templateGenerator = {
     generateHTMLTemplate
 }
 
-export default templateGenerator;
+module.exports =  templateGenerator;

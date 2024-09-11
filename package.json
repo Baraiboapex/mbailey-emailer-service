@@ -1,4 +1,14 @@
 {
+  "name": "mbailey-email-service",
+  "version": "1.0.0",
+  "description": "Classified",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "author": "",
+  "license": "ISC",
   "dependencies": {
     "dotenv": "^16.4.5",
     "email-templates": "^12.0.1",
@@ -9,6 +19,7 @@
     "nodemailer": "^6.9.15",
     "preview-email": "^3.1.0",
     "pug": "^3.0.3",
-    "uuid": "^10.0.0"
+    "uuid": "^10.0.0",
+    "workerpool": "^9.1.3"
   }
 }

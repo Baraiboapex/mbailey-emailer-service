@@ -2,29 +2,31 @@ const express = require("express");
 const app = express.Router();
 const emailSender = require("./emailSendingAlgorithm/senderAlgorithm");
 const jsonHelper = require("./helpers/jsonHelpers");
+const testData = require("./testData/testData");
 
 app.use(express.json());
 
-app.get("/sendEmail",async (req, res)=>{
-    try{
-        const {startEmailQueue} = emailSender;
+app.post("/sendEmail",async (req, res)=>{
     
+    try{
+        const { startEmailQueue } = emailSender;
         const { 
             template, 
             emailData, 
             emailSubject,
-            emailMessage,
             peopleToEmail
         } = req.body;
 
-        const emailerProcessDone = startEmailQueue({
-            messageSenderAdress,
-            emailSubject:emailSubject,
-            emailMessage:emailMessage,
-            emailTemplate:template,
-            peopleToSendEmailTo:peopleToEmail,
-            emailData
-        });
+        const buildEmailData = {
+            messageSenderAddress:process.env.EMAILER_SERVICE_EMAIL,
+            emailTemplate:template, 
+            emailData, 
+            emailSubject,
+            peopleToSendEmailTo:peopleToEmail
+        };
+
+        const emailerProcessDone = await startEmailQueue(buildEmailData);
+        console.log("process ==> ", emailerProcessDone);
 
         if(emailerProcessDone.success){
             res.status(200).send(JSON.stringify(emailerProcessDone));
@@ -39,9 +41,9 @@ app.get("/sendEmail",async (req, res)=>{
 
         if(getJsonErrorData){
             if(err.respCode){
-                res.status(err.respCode).send(JSON.stringify(emailerProcessDone));
+                res.status(err.respCode).send(JSON.stringify(err));
             }else{
-                res.status(500).send(JSON.stringify(emailerProcessDone));
+                res.status(500).send(JSON.stringify(err));
             }
         }else{
             res.status(500).send(JSON.stringify({
@@ -52,3 +54,5 @@ app.get("/sendEmail",async (req, res)=>{
     }
     
 });
+
+module.exports = app;

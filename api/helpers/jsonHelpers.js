@@ -10,4 +10,4 @@ const jsonHelpers={
     tryParsingJson
 };
 
-export default jsonHelpers;
+module.exports =  jsonHelpers;
