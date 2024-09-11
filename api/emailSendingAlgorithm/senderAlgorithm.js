@@ -18,13 +18,28 @@ const {
     }){
         return new Promise(async (resolve,reject)=>{
             try{
+                const emailSenderConfig = {
+                    service: 'gmail',
+                    secure: true,
+                    pool: true,
+                    host: 'smtp.gmail.com',
+                    port: 465,
+                    auth: {
+                        user: messageSenderAddress,
+                        pass: process.env.EMAILER_SERVICE_PASSWORD
+                    }
+                };
+
+                const emailSender =  nodemailer.createTransport(emailSenderConfig);
+
                 const emailerWorker = new Worker(__filename,{
                     workerData:{
                         messageSenderAddress,
                         emailSubject,
                         emailTemplate,
                         peopleToSendEmailTo,
-                        emailData
+                        emailData,
+                        emailSender
                     }
                 });
                 emailerWorker.on('message', (value)=>{
@@ -63,7 +78,8 @@ const {
         emailSubject,
         emailTemplate,
         peopleToSendEmailTo,
-        emailData
+        emailData,
+        emailSender
     } = workerData;
 
     const workerDataToLoad = {
@@ -71,7 +87,8 @@ const {
         emailSubject,
         emailTemplate,
         peopleToSendEmailTo,
-        emailData
+        emailData,
+        emailSender
     }
 
     function pauseSendingAlgorithm(){
@@ -87,7 +104,8 @@ const {
         emailAddress,
         emailSubject,
         emailTemplate,
-        emailData
+        emailData,
+        emailSender
     }){
         return new Promise(async (resolve, reject)=>{
             try{
@@ -96,22 +114,12 @@ const {
                     emailData
                 });
                 
-                const emailSenderConfig = {
-                    service: 'gmail',
-                    auth: {
-                        user: messageSenderAddress,
-                        pass: process.env.EMAILER_SERVICE_PASSWORD
-                    }
-                }
-
                 const mailToOptions = {
                     from:  messageSenderAddress,
                     to: emailAddress,
                     subject: emailSubject,
                     html: currentEmailTemplate
                 };
-
-                const emailSender =  nodemailer.createTransport(emailSenderConfig);
 
                 emailSender.sendMail(mailToOptions, (err,info)=>{
                     if(err){
@@ -135,7 +143,8 @@ const {
         emailSubject,
         emailTemplate,
         peopleToSendEmailTo,
-        emailData
+        emailData,
+        emailSender
     }){
         try{
             const amountOfEmailsSentBeforePause = 10;
@@ -150,12 +159,14 @@ const {
                 for(let i = 0; i <= amountOfEmailsSentBeforePause; i++){
                     timesSent++;
                     const emailAddress = peopleToSendEmailTo[i][2];
+
                     await sendEmail({
                         messageSenderAddress,
                         emailSubject,
                         emailAddress,
                         emailTemplate,
-                        emailData
+                        emailData,
+                        emailSender
                     });
     
                     console.log("Times Sent" + timesSent);
@@ -173,6 +184,7 @@ const {
                 success:true,
                 successMessage:"Emails sent to students!"
             });
+
         }catch(err){
             console.log(err);
             throw new Error(JSON.stringify({
