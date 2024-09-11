@@ -1,0 +1,29 @@
+# fly.toml app configuration file generated for mbailey-emailer-service on 2024-09-11T14:22:45-04:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'mbailey-emailer-service'
+primary_region = 'mia'
+
+[build]
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
+
+[env]
+  CURRENT_PORT = "4000"
+  NODE_DEBUG="email-templates node app.js"
+  EMAILER_SERVICE_PASSWORD="ndimewjkxtsrxbls"
+  EMAILER_SERVICE_EMAIL="gnbcjapaneseclass@gmail.com"
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
+

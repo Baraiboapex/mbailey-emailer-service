@@ -7,6 +7,8 @@ const mainService = require("./api/emailerService");
 
 ex_app.use("/", mainService);
 
-ex_app.listen(process.env.CURRENT_PORT, ()=>{
+ex_app.set("port", JSON.parse(process.env.PORT) || 4001);
+
+ex_app.listen(ex_app.get("port"), ()=>{
     console.log("Listening on port " + process.env.CURRENT_PORT);
 });
