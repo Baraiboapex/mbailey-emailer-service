@@ -17,10 +17,22 @@ primary_region = 'mia'
   processes = ['app']
 
 [env]
+
+  #-----main config------
   CURRENT_PORT = "4000"
   NODE_DEBUG="email-templates node app.js"
   EMAILER_SERVICE_PASSWORD="ndimewjkxtsrxbls"
   EMAILER_SERVICE_EMAIL="gnbcjapaneseclass@gmail.com"
+  #-----main config------
+
+  #----firebse config for hashing DB----
+  FIREBASE_API_KEY="AIzaSyDzjD9ueA9OiTvCWeICq6pILqSWSfOdG6A"
+  FIREBASE_PORT="apanese-class-hashes.firebaseapp.com"
+  DATABASE_URL="https://japanese-class-hashes-default-rtdb.firebaseio.com"
+  FIREBASE_MESSAGE_SENDER_ID="20392315569"
+  FIREBASE_APP_ID="1:20392315569:web:9c2d5fdde498defb17f090"
+  FIREBASE_MEASUREMENT_ID="G-CXX0MC44MF"
+  #----firebse config for hashing DB----
 
 [[vm]]
   memory = '1gb'

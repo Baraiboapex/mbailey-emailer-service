@@ -1,6 +1,12 @@
 
 const nodemailer = require('nodemailer');
 const templateGenerator = require("../emailTemplates/templateGenerator.js");
+const {
+    hashes
+} = require("../../repositories/firebaseDbRepository.js");
+const {
+    router
+} = require("../../service/router.js");
 
 const {generateHTMLTemplate} = templateGenerator;
 
@@ -85,16 +91,32 @@ const {
         });
     }
 
+    function setupEmailUrl (hashId, emailAddress){
+        return process.env.EMAIL_UNSUBSCRIBE_LINK + "?email_address="+emailAddress+"&email_hash="+hashId;
+      }
+
     function sendEmail({
         messageSenderAddress,
         emailAddress,
         emailSubject,
         emailTemplate,
         emailData,
-        emailSender
+        emailSender,
+        emailHashId,
+        hashDb
     }){
         return new Promise(async (resolve, reject)=>{
             try{
+                const getHash = await hashDb.getDatabaseData({ 
+                    authData: { 
+                        hashId:emailHashId 
+                    } 
+                });
+                
+                console.log("EMAIL HASH for "+emailAddress+"===> "+getHash);
+
+                emailData.emailUrl = setupEmailUrl(getHash, emailAddress);
+
                 const currentEmailTemplate = await generateHTMLTemplate({
                     templateName:emailTemplate,
                     emailData
@@ -135,7 +157,8 @@ const {
         try{
             const amountOfEmailsSentBeforePause = (peopleToSendEmailTo.length < 10 ? peopleToSendEmailTo.length : 10);
             const emailListLength = peopleToSendEmailTo.length;
-            
+            const hashDb = await hashes().buildDatabase();
+
             let currentIndex = 0;
             let timesSent = 0;
 
@@ -166,7 +189,9 @@ const {
                             emailAddress,
                             emailTemplate,
                             emailData,
-                            emailSender
+                            emailSender,
+                            emailHashId:peopleToSendEmailTo[i][5],
+                            hashDb
                         });
         
                         console.log("Times Sent" + timesSent);
