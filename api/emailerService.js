@@ -14,7 +14,7 @@ app.post("/sendEmail",async (req, res)=>{
             emailData, 
             emailSubject,
             peopleToEmail
-        } = JSON.parse(req.body);
+        } = req.body;
 
         const buildEmailData = {
             messageSenderAddress:process.env.EMAILER_SERVICE_EMAIL,
@@ -35,6 +35,7 @@ app.post("/sendEmail",async (req, res)=>{
             }))
         }
     }catch(err){
+        console.log(err);
         const getJsonErrorData = (jsonHelper.tryParsingJson(err) ? jsonHelper.tryParsingJson(err) : err);
 
         if(getJsonErrorData){
