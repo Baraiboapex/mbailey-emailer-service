@@ -30,15 +30,12 @@ async function generateHTMLTemplate({
             }else{
                 if(emailHTMLTemplate.errorFunc)
                 {
-                    console.log(emailHTMLTemplate.errorFunc());
                     reject(emailHTMLTemplate.errorFunc());
                 }else{
-                    console.log("child data does not exist for emailHTMLTemplate");
                     reject("child data does not exist for emailHTMLTemplate");
                 }
             }
         }else{
-            console.log("emailHTMLTemplate is null or does not exist");
             reject("emailHTMLTemplate is null or does not exist");
         }
     });

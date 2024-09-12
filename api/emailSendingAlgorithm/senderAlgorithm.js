@@ -54,7 +54,6 @@ const {
                     message:"Sending your emails!"
                 });
             }catch(err){
-                console.log(err);
                 reject({
                     success:false,
                     errorMessage:"Could not send Emails"
@@ -107,14 +106,12 @@ const {
     }){
         return new Promise(async (resolve, reject)=>{
             try{
-                const getHash = await hashDb.getDatabaseData({ 
+                const getHash = await hashDb.getData({ 
                     authData: { 
                         hashId:emailHashId 
                     } 
                 });
                 
-                console.log("EMAIL HASH for "+emailAddress+"===> "+getHash);
-
                 emailData.emailUrl = setupEmailUrl(getHash, emailAddress);
 
                 const currentEmailTemplate = await generateHTMLTemplate({
@@ -138,7 +135,6 @@ const {
                     }
                 });
             }catch(err){
-                console.log("ERROR: ", err);
                 throw new Error(JSON.stringify({
                     success:false,
                     errorMessage:err
@@ -193,17 +189,13 @@ const {
                             emailHashId:peopleToSendEmailTo[i][5],
                             hashDb
                         });
-        
-                        console.log("Times Sent" + timesSent);
-        
+
                         if(timesSent >= amountOfEmailsSentBeforePause){
                             await pauseSendingAlgorithm();
                             timesSent = 0;
                         }
 
                         currentIndex++;
-                        console.log(currentIndex);
-                        console.log(emailListLength >= currentIndex);
                     }else{
                         break;
                     }

@@ -32,6 +32,7 @@ primary_region = 'mia'
   FIREBASE_MESSAGE_SENDER_ID="20392315569"
   FIREBASE_APP_ID="1:20392315569:web:9c2d5fdde498defb17f090"
   FIREBASE_MEASUREMENT_ID="G-CXX0MC44MF"
+  EMAIL_UNSUBSCRIBE_LINK="https://script.google.com/macros/s/AKfycbx2QiyUkrzl5SP5YX_ENDWtK53-7f2a056we2mSb4ZAysmPYwcHKc7dFXIQ_Jt3SApOqA/exec"
   #----firebse config for hashing DB----
 
 [[vm]]

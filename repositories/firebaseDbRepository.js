@@ -31,13 +31,34 @@ const dbContainer = {
   async getData(auth) {
     if (this.dbObject) {
       return new Promise((resolve, reject) => {
-        get(child(this.dbObject, "/" + (auth.authData ? auth.authData.hashId : ""))).then(
-          (snap) => {
-            const currentDbObject = snap.val();
-            const currentSelectedHashObject = currentDbObject[Object.keys(currentDbObject)[0]]
-            resolve(currentSelectedHashObject);
+        try{
+          if(auth){
+            if(auth.authData){
+              if(auth.authData.hashId){
+                get(child(this.dbObject, "/")).then(
+                  (snap) => {
+                    const allData = snap.val();
+                    const objectKeys = Object.keys(allData).join(", ");
+                    const currentObjectKeyFinder = new RegExp("("+auth.authData.hashId+"_)(.*?)(?=,)","g");
+                    const getSelectedKey = objectKeys.match(currentObjectKeyFinder)[0];
+                    const selectedObject = allData[getSelectedKey];
+                    const finalRetrivedObject = selectedObject[Object.keys(selectedObject)[0]];
+                    
+                    resolve(finalRetrivedObject)
+                  }
+                );     
+              }else{
+                throw new Error("You must provide an auth id to search for")
+              }
+            }else{
+              throw new Error("No authorization object found to get hash Id");
+            }
+          }else{
+            throw new Error("No base data found for getting hash Id")
           }
-        );
+        }catch(err){
+          reject(err);
+        }
       });
     }
   },
@@ -62,10 +83,7 @@ const hashes = () => ({
   async buildDatabase(){
     const database = await dbContainer.loadHashesDb();
     return database;
-  },
-  async getDatabaseData({ authData: { hashId } }) {
-    return database.getData({auth:{ authData:{ hashId }}});
-  },
+  }
 });
 
 const firebaseApps = {
