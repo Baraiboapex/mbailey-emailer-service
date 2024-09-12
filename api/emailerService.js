@@ -1,13 +1,12 @@
 const emailSender = require("./emailSendingAlgorithm/senderAlgorithm");
 const jsonHelper = require("./helpers/jsonHelpers");
-
+const bodyParser = require("body-parser")
 const express = require("express");
 const app = express.Router();
 
-app.use(express.text());
+app.use(bodyParser.json({ type: "application/json" }));
 
 app.post("/sendEmail",async (req, res)=>{
-    
     try{
         const { startEmailQueue } = emailSender;
         const { 
@@ -24,8 +23,6 @@ app.post("/sendEmail",async (req, res)=>{
             emailSubject,
             peopleToSendEmailTo:peopleToEmail
         };
-        
-        console.log(req.body, peopleToEmail);
 
         const emailerProcessDone = await startEmailQueue(buildEmailData);
         

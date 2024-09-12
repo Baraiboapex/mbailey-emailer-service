@@ -22,9 +22,9 @@ const {
         peopleToSendEmailTo,
         emailData
     }){
+        console.log("PROCESS");
         return new Promise(async (resolve,reject)=>{
             try{
-
                 const emailerWorker = new Worker(__filename,{
                     workerData:{
                         messageSenderAddress,
@@ -194,7 +194,7 @@ const {
                             await pauseSendingAlgorithm();
                             timesSent = 0;
                         }
-
+                        console.log("Times Sent " + timesSent);
                         currentIndex++;
                     }else{
                         break;
