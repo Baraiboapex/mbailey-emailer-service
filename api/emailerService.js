@@ -24,11 +24,13 @@ app.post("/sendEmail",async (req, res)=>{
             peopleToSendEmailTo:peopleToEmail
         };
 
-        const emailerProcessDone = await startEmailQueue(buildEmailData);
+        const emailerProcessDone = await startEmailQueue.exec("startEmailQueueWorker",[buildEmailData]);
         
         if(emailerProcessDone.success){
             res.status(200).send(JSON.stringify(emailerProcessDone));
+            startEmailQueue.terminate();
         }else{
+            startEmailQueue.terminate();
             throw new Error(JSON.stringify({
                 ...emailerProcessDone,
                 respCode:400

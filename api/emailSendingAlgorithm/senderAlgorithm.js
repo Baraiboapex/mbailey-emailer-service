@@ -4,18 +4,17 @@ const templateGenerator = require("../emailTemplates/templateGenerator.js");
 const {
     hashes
 } = require("../../repositories/firebaseDbRepository.js");
-const {
-    router
-} = require("../../service/router.js");
 
 const {generateHTMLTemplate} = templateGenerator;
+
+const workerpool = require('workerpool');
 
 const {
     Worker, isMainThread, parentPort, workerData
   } = require('node:worker_threads');
   
   if(isMainThread){
-    function startEmailQueue({
+    function startEmailQueueWorker({
         messageSenderAddress,
         emailSubject,
         emailTemplate,
@@ -62,9 +61,16 @@ const {
             
         })
     };
+
+    workerpool.pool({
+        startEmailQueueWorker
+    });
+
+    const startEmailQueue = workerpool.pool(__filename); 
+
     module.exports = {
         startEmailQueue
-    }
+    };
   }else{
     const {
         messageSenderAddress,
