@@ -441,7 +441,6 @@ const emailList = [
     ],
 ]
 
-
 const testData = {
     emailList
 }
