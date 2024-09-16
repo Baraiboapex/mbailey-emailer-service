@@ -9,17 +9,10 @@ const {generateHTMLTemplate} = templateGenerator;
 
 var workerpool = require("workerpool");
 
-function pauseSendingAlgorithm(){
-    return new Promise((resolve, reject)=>{
-        setTimeout(()=>{
-            resolve();
-        },10000);
-    });
-}
 
 function setupEmailUrl (hashId, emailAddress){
     return process.env.EMAIL_UNSUBSCRIBE_LINK + "?email_address="+emailAddress+"&email_hash="+hashId;
-  }
+}
 
   function sendEmail({
     messageSenderAddress,
@@ -99,36 +92,45 @@ function startEmailQueueWorker({
             };
 
             const emailSender =  nodemailer.createTransport(emailSenderConfig);
+            const emailAddresses = peopleToSendEmailTo.map((person)=>person[2]);
             
-            while(emailListLength >= currentIndex + 1){
-                for(let i = 0; i <= amountOfEmailsSentBeforePause; i++){
+            console.log(emailAddresses);
+
+            await sendEmail({
+                messageSenderAddress,
+                emailSubject,
+                emailAddress:emailAddresses,
+                emailTemplate,
+                emailData,
+                emailSender,
+                emailHashId:peopleToSendEmailTo[i][5],
+                hashDb
+            });
+
+            // while(emailListLength >= currentIndex + 1){
+            //     for(let i = 0; i <= amountOfEmailsSentBeforePause; i++){
                     
-                    if(peopleToSendEmailTo[i]){
-                        timesSent++;
-                        const emailAddress = peopleToSendEmailTo[i][2];
+            //         if(peopleToSendEmailTo[i]){
+            //             timesSent++;
+            //             const emailAddress = peopleToSendEmailTo[i][2];
 
-                        await sendEmail({
-                            messageSenderAddress,
-                            emailSubject,
-                            emailAddress,
-                            emailTemplate,
-                            emailData,
-                            emailSender,
-                            emailHashId:peopleToSendEmailTo[i][5],
-                            hashDb
-                        });
+            //             await sendEmail({
+            //                 messageSenderAddress,
+            //                 emailSubject,
+            //                 emailAddress,
+            //                 emailTemplate,
+            //                 emailData,
+            //                 emailSender,
+            //                 emailHashId:peopleToSendEmailTo[i][5],
+            //                 hashDb
+            //             });
 
-                        if(timesSent >= amountOfEmailsSentBeforePause){
-                            await pauseSendingAlgorithm();
-                            timesSent = 0;
-                        }
-                        console.log("Times Sent " + timesSent);
-                        currentIndex++;
-                    }else{
-                        break;
-                    }
-                }
-            }
+            //             currentIndex++;
+            //         }else{
+            //             break;
+            //         }
+            //     }
+            // }
         resolve({
             success:true,
             message:"Sending your emails!"
