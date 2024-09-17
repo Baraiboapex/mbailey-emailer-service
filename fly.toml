@@ -21,8 +21,8 @@ primary_region = 'mia'
   #-----main config------
   CURRENT_PORT = "4000"
   NODE_DEBUG="email-templates node app.js"
-  EMAILER_SERVICE_PASSWORD="ndimewjkxtsrxbls"
-  EMAILER_SERVICE_EMAIL="gnbcjapaneseclass@gmail.com"
+  EMAILER_SERVICE_PASSWORD="ymbwquvjkxqhooxg"
+  EMAILER_SERVICE_EMAIL="gnbcjapaneseclass3@gmail.com"
   #-----main config------
 
   #----firebse config for hashing DB----

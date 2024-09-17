@@ -9,6 +9,13 @@ const {generateHTMLTemplate} = templateGenerator;
 
 var workerpool = require("workerpool");
 
+function pauseSendingAlgorithm(){
+    return new Promise((resolve, reject)=>{
+        setTimeout(()=>{
+            resolve();
+        },5000);
+    });
+}
 
 function setupEmailUrl (hashId, emailAddress){
     return process.env.EMAIL_UNSUBSCRIBE_LINK + "?email_address="+emailAddress+"&email_hash="+hashId;
@@ -72,9 +79,12 @@ function startEmailQueueWorker({
 }) {
   return new Promise(async (resolve, reject) => {
     try{
-        const amountOfEmailsSentBeforePause = (peopleToSendEmailTo.length < 10 ? peopleToSendEmailTo.length : 10);
+        const amountOfEmailsSentBeforePause = (peopleToSendEmailTo.length < 50 ? peopleToSendEmailTo.length : 50);
             const emailListLength = peopleToSendEmailTo.length;
             const hashDb = await hashes().buildDatabase();
+
+            let currentIndex = 0;
+            let timesSent = 0;
 
             const emailSenderConfig = {
                 service: 'gmail',
@@ -90,22 +100,35 @@ function startEmailQueueWorker({
 
             const emailSender =  nodemailer.createTransport(emailSenderConfig);
             
-            for(let currentIndex = 0; currentIndex <= emailListLength; currentIndex++){
-                const emailAddress = peopleToSendEmailTo[currentIndex][2];
-                
-                await sendEmail({
-                    messageSenderAddress,
-                    emailSubject,
-                    emailAddress,
-                    emailTemplate,
-                    emailData,
-                    emailSender,
-                    emailHashId:peopleToSendEmailTo[currentIndex][5],
-                    hashDb
-                });
+            while(emailListLength >= currentIndex + 1){
+                for(let i = 0; i <= amountOfEmailsSentBeforePause; i++){
+                    
+                    if(peopleToSendEmailTo[i]){
+                        timesSent++;
+                        const emailAddress = peopleToSendEmailTo[i][2];
 
+                        await sendEmail({
+                            messageSenderAddress,
+                            emailSubject,
+                            emailAddress,
+                            emailTemplate,
+                            emailData,
+                            emailSender,
+                            emailHashId:peopleToSendEmailTo[i][5],
+                            hashDb
+                        });
+
+                        if(timesSent >= amountOfEmailsSentBeforePause){
+                            await pauseSendingAlgorithm();
+                            timesSent = 0;
+                        }
+                        console.log("Times Sent " + timesSent);
+                        currentIndex++;
+                    }else{
+                        break;
+                    }
+                }
             }
-
         resolve({
             success:true,
             message:"Sending your emails!"
