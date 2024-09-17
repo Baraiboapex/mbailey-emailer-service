@@ -76,9 +76,6 @@ function startEmailQueueWorker({
             const emailListLength = peopleToSendEmailTo.length;
             const hashDb = await hashes().buildDatabase();
 
-            let currentIndex = 0;
-            let timesSent = 0;
-
             const emailSenderConfig = {
                 service: 'gmail',
                 secure: true,
@@ -92,45 +89,23 @@ function startEmailQueueWorker({
             };
 
             const emailSender =  nodemailer.createTransport(emailSenderConfig);
-            const emailAddresses = peopleToSendEmailTo.map((person)=>person[2]);
             
-            console.log(emailAddresses);
+            for(let currentIndex = 0; currentIndex <= emailListLength; currentIndex++){
+                const emailAddress = peopleToSendEmailTo[currentIndex][2];
+                
+                await sendEmail({
+                    messageSenderAddress,
+                    emailSubject,
+                    emailAddress,
+                    emailTemplate,
+                    emailData,
+                    emailSender,
+                    emailHashId:peopleToSendEmailTo[currentIndex][5],
+                    hashDb
+                });
 
-            await sendEmail({
-                messageSenderAddress,
-                emailSubject,
-                emailAddress:emailAddresses,
-                emailTemplate,
-                emailData,
-                emailSender,
-                emailHashId:peopleToSendEmailTo[i][5],
-                hashDb
-            });
+            }
 
-            // while(emailListLength >= currentIndex + 1){
-            //     for(let i = 0; i <= amountOfEmailsSentBeforePause; i++){
-                    
-            //         if(peopleToSendEmailTo[i]){
-            //             timesSent++;
-            //             const emailAddress = peopleToSendEmailTo[i][2];
-
-            //             await sendEmail({
-            //                 messageSenderAddress,
-            //                 emailSubject,
-            //                 emailAddress,
-            //                 emailTemplate,
-            //                 emailData,
-            //                 emailSender,
-            //                 emailHashId:peopleToSendEmailTo[i][5],
-            //                 hashDb
-            //             });
-
-            //             currentIndex++;
-            //         }else{
-            //             break;
-            //         }
-            //     }
-            // }
         resolve({
             success:true,
             message:"Sending your emails!"

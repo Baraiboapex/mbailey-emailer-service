@@ -39,7 +39,10 @@ const SEND_EMAIL_API_FIELD_VALIDATORS = [
 app.post("/sendEmail",async (req, res)=>{
     try{
         //const { startEmailQueueWorker } = emailSender;
-        const pool = workerpool.pool(__dirname + '/emailSendingAlgorithm/senderAlgorithm.js'); 
+        const pool = workerpool.pool(__dirname + '/emailSendingAlgorithm/senderAlgorithm.js',{
+            workerType: 'process',
+            maxWorkers: 2
+        }); 
         
         const { 
             template, 
