@@ -34,7 +34,7 @@ function startEmailQueueWorker({
         let currentIndex = 0;
         let timesSent = 0;
 
-        const emailSenderConfig = {
+        const emailSender = nodemailer.createTransport({
             service: 'gmail',
             secure: true,
             pool: true,
@@ -44,31 +44,31 @@ function startEmailQueueWorker({
                 user: messageSenderAddress,
                 pass: process.env.EMAILER_SERVICE_PASSWORD
             }
-        };
+        });
 
-        const emailSender =  nodemailer.createTransport(emailSenderConfig);
+        const senderRef = emailSender;
         
         while(emailListLength >= currentIndex + 1){
             for(let i = 0; i <= amountOfEmailsSentBeforePause; i++){
-                
                 if(peopleToSendEmailTo[i]){
                     timesSent++;
                     const emailAddress = peopleToSendEmailTo[i][2];
-                    const emailPoolSenderConfig = {
-                        messageSenderAddress,
-                        emailSubject,
-                        emailAddress,
-                        emailTemplate,
-                        emailData,
-                        emailSender,
-                        emailHashId:peopleToSendEmailTo[i][5],
-                        hashDb
-                    }
-
+                    
                     pool.proxy().then(
-                        (process)=>process.startEmailQueueWorker(emailPoolSenderConfig)
+                        async (process)=>{
+                            await process.sendEmail({
+                                messageSenderAddress,
+                                emailSubject,
+                                emailAddress,
+                                emailTemplate,
+                                emailData,
+                                emailSender:senderRef,
+                                emailHashId:peopleToSendEmailTo[i][5],
+                                hashDb
+                            });
+                        }
                     ).then((res)=>{
-                       console.log(res); 
+                       console.log("TEST",res); 
                     }).catch((err)=>{
                         console.log(err);
                     }).then((pool)=>{
@@ -79,13 +79,12 @@ function startEmailQueueWorker({
                         await pauseSendingAlgorithm();
                         timesSent = 0;
                     }
-                    console.log("Times Sent " + timesSent);
-                    currentIndex++;
                 }else{
                     break;
                 }
             }
         }
+
         resolve({
             success:true,
             message:"Sending your emails!"
