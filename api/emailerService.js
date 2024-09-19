@@ -1,5 +1,4 @@
 //const emailSender = require("./emailSendingAlgorithm/senderAlgorithm");
-const os = require('node:os');
 const WorkerPool = require("./emailSendingAlgorithm/workerPool");
 const jsonHelper = require("./helpers/jsonHelpers");
 const bodyParser = require("body-parser");
@@ -62,7 +61,7 @@ app.post("/sendEmail",async (req, res)=>{
         });
 
         const pool = new WorkerPool({
-            numThreads:os.availableParallelism(),
+            numThreads:5,
             workers:[
                 {workerName:"senderAlgorithm", workerData:buildEmailData}
             ]

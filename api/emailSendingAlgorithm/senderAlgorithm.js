@@ -1,10 +1,4 @@
-
-
-const templateGenerator = require("../emailTemplates/templateGenerator.js");
-const os = require('node:os');
 const WorkerPool = require("./workerPool");
-
-const {generateHTMLTemplate} = templateGenerator;
 
 const {
     Worker, isMainThread, workerData
@@ -92,11 +86,9 @@ const {
         emailData
     }){
         try{
-            const amountOfEmailsSentBeforePause = os.availableParallelism() - 2;
+            const amountOfEmailsSentBeforePause = 50;
             const emailListLength = peopleToSendEmailTo.length;
             
-            console.log(os.availableParallelism());
-
             let currentIndex = 0;
             let timesSent = 0;
 
@@ -110,7 +102,7 @@ const {
             };
             
             const pool = new WorkerPool({
-                numThreads:os.availableParallelism(),
+                numThreads:5,
             });
 
             while(currentIndex <= emailListLength){
