@@ -32,6 +32,7 @@ const dbContainer = {
     if (this.dbObject) {
       return new Promise((resolve, reject) => {
         try{
+          console.log("OBJ ===> ",auth);
           if(auth){
             if(auth.authData){
               if(auth.authData.hashId){

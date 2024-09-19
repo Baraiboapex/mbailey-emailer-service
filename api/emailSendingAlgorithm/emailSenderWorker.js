@@ -1,38 +1,46 @@
 const workerpool = require("workerpool");
 
-const templateGenerator = require("../emailTemplates/templateGenerator.js");
+const {
+    Emailer
+} = require("./emailSenderConfig.js");
 
-const {generateHTMLTemplate} = templateGenerator;
+const {
+    hashes
+} = require("../../repositories/firebaseDbRepository.js");
+const {
+    generateHTMLTemplate
+} = require("../emailTemplates/templateGenerator.js");
 
 function setupEmailUrl (hashId, emailAddress){
     return process.env.EMAIL_UNSUBSCRIBE_LINK + "?email_address="+emailAddress+"&email_hash="+hashId;
 }
 
+const hashDb = async function(){return await hashes().buildDatabase()};
+
 function sendEmail(props){
     const {
         messageSenderAddress,
-        emailAddress,
         emailSubject,
+        emailAddress,
         emailTemplate,
         emailData,
-        emailSender,
         emailHashId,
-        hashDb
-    } = props;
+        sender
+    }=props;
     return new Promise(async (resolve, reject)=>{
         try{
-            // const getHash = await hashDb.getData({ 
-            //     authData: { 
-            //         hashId:emailHashId 
-            //     } 
-            // });
+            const getHash = await (await hashDb()).getData({ 
+                authData: { 
+                    hashId:emailHashId 
+                } 
+            });
             
-            //emailData.emailUrl = setupEmailUrl(getHash, emailAddress);
+            emailData.emailUrl = setupEmailUrl(getHash, emailAddress);
 
-            // const currentEmailTemplate = await generateHTMLTemplate({
-            //     templateName:emailTemplate,
-            //     emailData
-            // });
+            const currentEmailTemplate = await generateHTMLTemplate({
+                templateName:emailTemplate,
+                emailData
+            });
             
             const mailToOptions = {
                 from:  messageSenderAddress,
@@ -41,16 +49,21 @@ function sendEmail(props){
                 html: currentEmailTemplate
             };
 
-            console.log(mailToOptions, emailSender);
-            // emailSender.sendMail(mailToOptions, (err,info)=>{
-            //     if(err){
-            //         console.log(err);
-            //         throw err;
-            //     }else{
-            //         resolve();
-            //     }
-            // });
+            const test = JSON.parse(sender.sendMailFunc);
+
+            console.log(test);
+
+            test.sendMail(mailToOptions, (err,info)=>{
+                if(err){
+                    console.log(err);
+                    throw err;
+                }else{
+                    resolve();
+                }
+            });
+            
         }catch(err){
+            console.log(err);
             throw new Error(JSON.stringify({
                 success:false,
                 errorMessage:err

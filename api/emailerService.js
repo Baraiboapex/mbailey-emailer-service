@@ -1,5 +1,6 @@
 //const emailSender = require("./emailSendingAlgorithm/senderAlgorithm");
-const workerpool = require('workerpool');
+const os = require('node:os');
+const WorkerPool = require("./emailSendingAlgorithm/workerPool");
 const jsonHelper = require("./helpers/jsonHelpers");
 const bodyParser = require("body-parser");
 const express = require("express");
@@ -39,11 +40,7 @@ const SEND_EMAIL_API_FIELD_VALIDATORS = [
 app.post("/sendEmail",async (req, res)=>{
     try{
         //const { startEmailQueueWorker } = emailSender;
-        const pool = workerpool.pool(__dirname + '/emailSendingAlgorithm/senderAlgorithm.js',{
-            workerType: 'process',
-            maxWorkers: 2
-        }); 
-        
+       
         const { 
             template, 
             emailData, 
@@ -64,15 +61,17 @@ app.post("/sendEmail",async (req, res)=>{
             fieldsToValidate:SEND_EMAIL_API_FIELD_VALIDATORS
         });
 
+        const pool = new WorkerPool({
+            numThreads:os.availableParallelism(),
+            workers:[
+                {workerName:"senderAlgorithm", workerData:buildEmailData}
+            ]
+        });
+
         if(fieldValidatorResult.allFieldsAreValid){
-            pool.proxy().then(
-                (process)=>process.startEmailQueueWorker(buildEmailData)
-            ).then((res)=>{
-               console.log(res); 
-            }).catch((err)=>{
-                console.log(err);
-            }).then((pool)=>{
-                pool.terminate();
+            
+            pool.runTask(buildEmailData, (err, result) => {
+                pool.close();
             });
     
             res.status(200).send(JSON.stringify({
