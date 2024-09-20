@@ -39,8 +39,6 @@ const SEND_EMAIL_API_FIELD_VALIDATORS = [
 
 app.post("/sendEmail",async (req, res)=>{
     try{
-        //const { startEmailQueueWorker } = emailSender;
-       
         const { 
             template, 
             emailData, 
@@ -83,7 +81,6 @@ app.post("/sendEmail",async (req, res)=>{
         }
 
     }catch(err){
-        console.log(err);
         const getJsonErrorData = (jsonHelper.tryParsingJson(err) ? jsonHelper.tryParsingJson(err) : err);
 
         if(getJsonErrorData){

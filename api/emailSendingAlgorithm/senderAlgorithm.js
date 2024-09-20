@@ -92,10 +92,8 @@ const {
         emailData
     }){
         try{
-            const amountOfEmailsSentBeforePause = os.availableParallelism() - 2;
+            const amountOfEmailsSentBeforePause = 10;
             const emailListLength = peopleToSendEmailTo.length;
-            
-            console.log(os.availableParallelism());
 
             let currentIndex = 0;
             let timesSent = 0;
@@ -110,13 +108,12 @@ const {
             };
             
             const pool = new WorkerPool({
-                numThreads:os.availableParallelism(),
+                numThreads:10,
             });
 
             while(currentIndex <= emailListLength){
                 for(let i = 0; i <= amountOfEmailsSentBeforePause; i++){
                     if(peopleToSendEmailTo[i]){
-                        console.log("current ==> ",peopleToSendEmailTo[i]);
                         const emailAddress = peopleToSendEmailTo[i][2];
 
                         emailDataToSend.emailAddress = emailAddress;
