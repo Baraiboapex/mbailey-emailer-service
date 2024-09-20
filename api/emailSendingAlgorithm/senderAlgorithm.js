@@ -86,7 +86,7 @@ const {
         emailData
     }){
         try{
-            const amountOfEmailsSentBeforePause = 50;
+            const amountOfEmailsSentBeforePause = 10;
             const emailListLength = peopleToSendEmailTo.length;
             
             let currentIndex = 0;
@@ -102,7 +102,7 @@ const {
             };
             
             const pool = new WorkerPool({
-                numThreads:5,
+                numThreads:amountOfEmailsSentBeforePause,
             });
 
             while(currentIndex <= emailListLength){

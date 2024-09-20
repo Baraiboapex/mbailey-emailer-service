@@ -61,7 +61,7 @@ app.post("/sendEmail",async (req, res)=>{
         });
 
         const pool = new WorkerPool({
-            numThreads:5,
+            numThreads:2,
             workers:[
                 {workerName:"senderAlgorithm", workerData:buildEmailData}
             ]
