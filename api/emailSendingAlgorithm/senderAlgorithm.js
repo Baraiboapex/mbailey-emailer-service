@@ -86,7 +86,7 @@ const {
         emailData
     }){
         try{
-            const amountOfEmailsSentBeforePause = 10;
+            const amountOfEmailsSentBeforePause = 5;
             const emailListLength = peopleToSendEmailTo.length;
             
             let currentIndex = 0;
@@ -108,7 +108,8 @@ const {
             while(currentIndex <= emailListLength){
                 for(let i = 0; i <= amountOfEmailsSentBeforePause; i++){
                     if(peopleToSendEmailTo[i]){
-                        console.log("current ==> ",peopleToSendEmailTo[i]);
+                        timesSent++;
+                        console.log(timesSent);
                         const emailAddress = peopleToSendEmailTo[i][2];
 
                         emailDataToSend.emailAddress = emailAddress;
@@ -119,8 +120,9 @@ const {
                             workerData:emailDataToSend
                         });
 
-                        pool.runTask(emailDataToSend, (err, result) => {
+                        pool.runTask(emailDataToSend, async (err, result) => {
                             if(err){
+                                console.log(err);
                                 pool.close();
                                 throw new Error(JSON.stringify({
                                     success:false,
@@ -141,10 +143,10 @@ const {
             }
         }catch(err){
             console.log("ERRRRRRR",err);
-            // throw new Error(JSON.stringify({
-            //     success:false,
-            //     errorMessage:err
-            // }));
+            throw new Error(JSON.stringify({
+                success:false,
+                errorMessage:err
+            }));
         }
     }
 

@@ -2,6 +2,7 @@ const { AsyncResource } = require('node:async_hooks');
 const { EventEmitter } = require('node:events');
 const path = require('node:path');
 const { Worker } = require('node:worker_threads');
+const _ = require("lodash");
 
 const kTaskInfo = Symbol('kTaskInfo');
 const kWorkerFreedEvent = Symbol('kWorkerFreedEvent');
@@ -29,8 +30,9 @@ class WorkerPool extends EventEmitter {
     this.freeWorkers = [];
     this.tasks = [];
 
-
-    const amountOfWorkersWithinAcceptableThredRange = (workers !== undefined) && (workers.length <= numThreads);
+    const hasWorkers = workers !== undefined && !(_.isEmpty(workers)) && workers !== null;
+    const hasNumThreads = numThreads !== undefined && numThreads !== null && numThreads !== 0;
+    const amountOfWorkersWithinAcceptableThredRange = hasWorkers && (hasNumThreads ? workers.length <= numThreads : false);
 
     if(amountOfWorkersWithinAcceptableThredRange){
         for (let i = 0; i < workers.length; i++){
@@ -51,49 +53,40 @@ class WorkerPool extends EventEmitter {
       }
     });
   }
-
   addNewWorker({
     workerName,
     workerData
 }){
-    console.log(this.numThreads, this.workers.length);
-    const amountOfWorkersWithinAcceptableThredRange = (this.workers.length <= this.numThreads)&& (this.workers !== undefined);
-
-    if(amountOfWorkersWithinAcceptableThredRange){
-        const worker = new Worker(path.resolve(__dirname, workerName+'.js'), {
-            workerData:(workerData !== undefined ? workerData : undefined)
-        });
-        worker.on('message', (result) => {
-        // In case of success: Call the callback that was passed to `runTask`,
-        // remove the `TaskInfo` associated with the Worker, and mark it as free
-        // again.
-        worker[kTaskInfo].done(null, result);
-        worker[kTaskInfo] = null;
-        this.freeWorkers.push(worker);
-        this.emit(kWorkerFreedEvent);
-        });
-        worker.on('error', (err) => {
-        // In case of an uncaught exception: Call the callback that was passed to
-        // `runTask` with the error.
-        if (worker[kTaskInfo])
-            worker[kTaskInfo].done(err, null);
-        else
-            console.log("ERROOORRRR==>",err);
-            this.emit('error', err);
-        // Remove the worker from the list and start a new Worker to replace the
-        // current one.
-        this.workers.splice(this.workers.indexOf(worker), 1);
-        this.addNewWorker({
-            workerName,
-            workerData
-        });
-        });
-        this.workers.push(worker);
-        this.freeWorkers.push(worker);
-        this.emit(kWorkerFreedEvent);
-    }else{
-        throw new Error("Not enough cores to run this many tasks");
-    }
+    const worker = new Worker(path.resolve(__dirname, workerName+'.js'), {
+        workerData:(workerData !== undefined ? workerData : undefined)
+    });
+    worker.on('message', (result) => {
+      // In case of success: Call the callback that was passed to `runTask`,
+      // remove the `TaskInfo` associated with the Worker, and mark it as free
+      // again.
+      worker[kTaskInfo].done(null, result);
+      worker[kTaskInfo] = null;
+      this.freeWorkers.push(worker);
+      this.emit(kWorkerFreedEvent);
+    });
+    worker.on('error', (err) => {
+      // In case of an uncaught exception: Call the callback that was passed to
+      // `runTask` with the error.
+      if (worker[kTaskInfo])
+          worker[kTaskInfo].done(err, null);
+      else
+          this.emit('error', err);
+      // Remove the worker from the list and start a new Worker to replace the
+      // current one.
+      this.workers.splice(this.workers.indexOf(worker), 1);
+      this.addNewWorker({
+          workerName,
+          workerData
+      });
+    });
+    this.workers.push(worker);
+    this.freeWorkers.push(worker);
+    this.emit(kWorkerFreedEvent);
   }
 
   runTask(task, callback) {

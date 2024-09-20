@@ -91,6 +91,10 @@ const {
                 
                 const emailSenderConfig = {
                     service: 'gmail',
+                    secure: false,
+                    pool: true,
+                    host: 'smtp.gmail.com',
+                    port: 465,
                     auth: {
                         user: messageSenderAddress,
                         pass: process.env.EMAILER_SERVICE_PASSWORD
@@ -109,16 +113,20 @@ const {
                 emailSender.sendMail(mailToOptions, (err,info)=>{
                     if(err){
                         reject(err);
+                        emailSender.close();
                     }else{
+                        emailSender.close();
                         resolve(info);
                     }
                 });
+
+                
             }catch(err){
                 console.log(err);
-                // reject(JSON.stringify({
-                //     success:false,
-                //     errorMessage:err
-                // }));
+                reject(JSON.stringify({
+                    success:false,
+                    errorMessage:err
+                }));
             }
         }); 
     }
