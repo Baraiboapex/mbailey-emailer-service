@@ -63,7 +63,14 @@ const {
     }
     
     const hashDb = async function(){return await hashes().buildDatabase()};
-    
+    const closeSenderAndHashDBConnections = function({
+        emailSender,
+        hashDb
+    }){
+        emailSender.close();
+        hashDb.closeDatabaseConnection();
+    };
+
     sendEmailProcess(workerData)
     
     function sendEmailProcess({
@@ -76,7 +83,8 @@ const {
     }){
         return new Promise(async (resolve, reject)=>{
             try{
-                const getHash = await (await hashDb()).getData({ 
+                const hDb = await hashDb();
+                const getHash = await (hDb).getData({ 
                     authData: { 
                         hashId:emailHashId 
                     } 
@@ -112,10 +120,16 @@ const {
 
                 emailSender.sendMail(mailToOptions, (err,info)=>{
                     if(err){
+                        closeSenderAndHashDBConnections({
+                            emailSender,
+                            hashDb:hDb
+                        });
                         reject(err);
-                        emailSender.close();
                     }else{
-                        emailSender.close();
+                        closeSenderAndHashDBConnections({
+                            emailSender,
+                            hashDb:hDb
+                        });
                         resolve(info);
                     }
                 });

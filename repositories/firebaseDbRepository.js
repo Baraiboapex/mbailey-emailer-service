@@ -1,4 +1,4 @@
-const { getDatabase, ref, child, get, set } = require("firebase/database");
+const { getDatabase, ref, child, get, set, goOffline } = require("firebase/database");
 const { initializeApp } = require("firebase/app");
 
 const firebaseHashesDbConfig = {
@@ -16,7 +16,7 @@ const dbContainer = {
   dbObject: null,
   dbInteractor: null,
   async loadHashesDb() {
-    const db = await this.createDatabase(firebaseHashesDbConfig , "solutions");
+    await this.createDatabase(firebaseHashesDbConfig , "solutions");
     return this;
   },
   async createDatabase(config, name) {
@@ -74,6 +74,9 @@ const dbContainer = {
       });
     }
   },
+  closeDatabaseConnection(){
+    goOffline(this.dbInteractor);
+  }
 };
 
 const hashes = () => ({
@@ -83,7 +86,7 @@ const hashes = () => ({
   async buildDatabase(){
     const database = await dbContainer.loadHashesDb();
     return database;
-  }
+  },
 });
 
 const firebaseApps = {
