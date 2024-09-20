@@ -1,10 +1,4 @@
-
-
-const templateGenerator = require("../emailTemplates/templateGenerator.js");
-const os = require('node:os');
 const WorkerPool = require("./workerPool");
-
-const {generateHTMLTemplate} = templateGenerator;
 
 const {
     Worker, isMainThread, workerData
