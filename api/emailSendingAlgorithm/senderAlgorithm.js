@@ -86,7 +86,7 @@ const {
         emailData
     }){
         try{
-            const amountOfEmailsSentBeforePause = 10;
+            const amountOfEmailsSentBeforePause = 5;
             const emailListLength = peopleToSendEmailTo.length;
 
             let currentIndex = 0;
@@ -102,13 +102,15 @@ const {
             };
             
             const pool = new WorkerPool({
-                numThreads:10,
+                numThreads:amountOfEmailsSentBeforePause,
             });
 
             while(currentIndex <= emailListLength){
                 for(let i = 0; i <= amountOfEmailsSentBeforePause; i++){
                     if(peopleToSendEmailTo[i]){
+                        timesSent++;
                         const emailAddress = peopleToSendEmailTo[i][2];
+                        const isSubscribed = peopleToSendEmailTo[i][4] === "Yes";
 
                         emailDataToSend.emailAddress = emailAddress;
                         emailDataToSend.emailHashId = peopleToSendEmailTo[i][5];
@@ -118,16 +120,19 @@ const {
                             workerData:emailDataToSend
                         });
 
-                        pool.runTask(emailDataToSend, (err, result) => {
-                            if(err){
+                        if(isSubscribed){
+                            pool.runTask(emailDataToSend, async (err, result) => {
+                                if(err){
+                                    console.log(err);
+                                    pool.close();
+                                    throw new Error(JSON.stringify({
+                                        success:false,
+                                        errorMessage:err
+                                    }));
+                                }
                                 pool.close();
-                                throw new Error(JSON.stringify({
-                                    success:false,
-                                    errorMessage:err
-                                }));
-                            }
-                            pool.close();
-                        });
+                            });
+                        }
                         
                         if(timesSent >= amountOfEmailsSentBeforePause){
                             await pauseSendingAlgorithm();
@@ -140,10 +145,10 @@ const {
             }
         }catch(err){
             console.log("ERRRRRRR",err);
-            // throw new Error(JSON.stringify({
-            //     success:false,
-            //     errorMessage:err
-            // }));
+            throw new Error(JSON.stringify({
+                success:false,
+                errorMessage:err
+            }));
         }
     }
 

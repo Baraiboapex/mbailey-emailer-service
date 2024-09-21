@@ -63,7 +63,14 @@ const {
     }
     
     const hashDb = async function(){return await hashes().buildDatabase()};
-    
+    const closeSenderAndHashDBConnections = function({
+        emailSender,
+        hashDb
+    }){
+        emailSender.close();
+        hashDb.closeDatabaseConnection();
+    };
+
     sendEmailProcess(workerData)
     
     function sendEmailProcess({
@@ -76,7 +83,8 @@ const {
     }){
         return new Promise(async (resolve, reject)=>{
             try{
-                const getHash = await (await hashDb()).getData({ 
+                const hDb = await hashDb();
+                const getHash = await (hDb).getData({ 
                     authData: { 
                         hashId:emailHashId 
                     } 
@@ -91,6 +99,10 @@ const {
                 
                 const emailSenderConfig = {
                     service: 'gmail',
+                    secure: false,
+                    pool: true,
+                    host: 'smtp.gmail.com',
+                    port: 465,
                     auth: {
                         user: messageSenderAddress,
                         pass: process.env.EMAILER_SERVICE_PASSWORD
@@ -108,17 +120,25 @@ const {
 
                 emailSender.sendMail(mailToOptions, (err,info)=>{
                     if(err){
+                        closeSenderAndHashDBConnections({
+                            emailSender,
+                            hashDb:hDb
+                        });
                         reject(err);
                     }else{
+                        closeSenderAndHashDBConnections({
+                            emailSender,
+                            hashDb:hDb
+                        });
                         resolve(info);
                     }
                 });
             }catch(err){
                 console.log(err);
-                // reject(JSON.stringify({
-                //     success:false,
-                //     errorMessage:err
-                // }));
+                reject(JSON.stringify({
+                    success:false,
+                    errorMessage:err
+                }));
             }
         }); 
     }
