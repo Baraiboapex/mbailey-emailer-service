@@ -36,7 +36,7 @@ primary_region = 'mia'
   #----firebse config for hashing DB----
 
 [[vm]]
-  memory = '8gb'
+  memory = '4gb'
   cpu_kind = 'shared'
   cpus = 2
 
