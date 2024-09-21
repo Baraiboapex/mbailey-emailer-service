@@ -109,8 +109,8 @@ const {
                 for(let i = 0; i <= amountOfEmailsSentBeforePause; i++){
                     if(peopleToSendEmailTo[i]){
                         timesSent++;
-                        console.log(timesSent);
                         const emailAddress = peopleToSendEmailTo[i][2];
+                        const isSubscribed = peopleToSendEmailTo[i][4] === "Yes";
 
                         emailDataToSend.emailAddress = emailAddress;
                         emailDataToSend.emailHashId = peopleToSendEmailTo[i][5];
@@ -120,17 +120,19 @@ const {
                             workerData:emailDataToSend
                         });
 
-                        pool.runTask(emailDataToSend, async (err, result) => {
-                            if(err){
-                                console.log(err);
+                        if(isSubscribed){
+                            pool.runTask(emailDataToSend, async (err, result) => {
+                                if(err){
+                                    console.log(err);
+                                    pool.close();
+                                    throw new Error(JSON.stringify({
+                                        success:false,
+                                        errorMessage:err
+                                    }));
+                                }
                                 pool.close();
-                                throw new Error(JSON.stringify({
-                                    success:false,
-                                    errorMessage:err
-                                }));
-                            }
-                            pool.close();
-                        });
+                            });
+                        }
                         
                         if(timesSent >= amountOfEmailsSentBeforePause){
                             await pauseSendingAlgorithm();

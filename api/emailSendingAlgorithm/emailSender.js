@@ -133,8 +133,6 @@ const {
                         resolve(info);
                     }
                 });
-
-                
             }catch(err){
                 console.log(err);
                 reject(JSON.stringify({
