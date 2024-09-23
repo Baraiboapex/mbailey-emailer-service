@@ -75,6 +75,7 @@ class WorkerPool extends EventEmitter {
       if (worker[kTaskInfo])
           worker[kTaskInfo].done(err, null);
       else
+      console.log("ERROR IN POOL", err);
           this.emit('error', err);
       // Remove the worker from the list and start a new Worker to replace the
       // current one.

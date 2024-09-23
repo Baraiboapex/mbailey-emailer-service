@@ -10,54 +10,7 @@ const {
     generateHTMLTemplate
 } = require("../emailTemplates/templateGenerator.js");
 
-  if(isMainThread){
-    function sendEmail({
-        messageSenderAddress,
-        emailAddress,
-        emailSubject,
-        emailTemplate,
-        emailData
-    }){
-        try{
-            const emailerSenderWorker = new Worker(__filename,{
-                workerData:{
-                    messageSenderAddress,
-                    emailAddress,
-                    emailSubject,
-                    emailTemplate,
-                    emailData
-                }
-            });
-            emailerSenderWorker.on('message', (value)=>{
-                console.log(value);
-            });
-            emailerSenderWorker.on('error', (err)=>{
-                console.log(JSON.parse(err));
-            });
-            emailerSenderWorker.on('exit', (code) => {
-                if (code !== 0){
-                    console.log({
-                        success:false,
-                        errorMessage:`emailWorker stopped with exit code ${code}`
-                    });
-                }
-            });
-            resolve({
-                success:true,
-                message:"Sent an email!"
-            });
-        }catch(err){
-            reject({
-                success:false,
-                errorMessage:"Could not send an email to \""+ emailAddress+"\""
-            });
-        }
-    }
-
-    module.exports={
-        sendEmail
-    }
-  }else{
+  if(!isMainThread){
     function setupEmailUrl (hashId, emailAddress){
         return process.env.EMAIL_UNSUBSCRIBE_LINK + "?email_address="+emailAddress+"&email_hash="+hashId;
     }
@@ -105,7 +58,7 @@ const {
                     port: 465,
                     auth: {
                         user: messageSenderAddress,
-                        pass: process.env.EMAILER_SERVICE_PASSWORD
+                        pass: "ymbwquvjkxqhooxg"//process.env.EMAILER_SERVICE_PASSWORD
                     }
                 }
 
