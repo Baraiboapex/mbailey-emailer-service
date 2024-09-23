@@ -1,26 +1,45 @@
-var amqp = require('amqplib/callback_api');
+function getMessageFromChannelQueue({
+    nameOfChannelQueue,
+    channelData,
+    callback
+}){
+    return new Promise((resolve,reject)=>{
+        try{
+            channelData.assertQueue(nameOfChannelQueue, {
+                durable: true
+            });
 
-amqp.connect('amqp://localhost', function(error0, connection) {
-    if (error0) {
-      throw error0;
-    }
-    connection.createChannel(function(error1, channel) {
-        if (error1) {
-            throw error1;
+            channelData.prefetch(2);
+
+            console.log(" [*] Waiting for email messages in %s. To exit press CTRL+C", nameOfChannelQueue);
+            
+            channelData.consume(nameOfChannelQueue, function(msg) {
+                if(msg.content){
+                    console.log("DONE!");
+                    channelData.ack(msg);
+                    resolve({
+                        success:true,
+                        callback:callback(JSON.parse(msg.content)),
+                    });
+                }else{
+                    reject({
+                        success:false,
+                        message:"Could not send emails"
+                    });
+                }
+            }, {
+                noAck: false
+            });
+        }catch(err){
+            console.log(err);
+            reject({
+                success:false,
+                message:"Could not send emails"
+            });
         }
-        
-        var queue = 'hello';
-  
-        channel.assertQueue(queue, {
-            durable: false
-        });
-
-        console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
-
-        channel.consume(queue, function(msg) {
-            console.log(" [x] Received %s", msg.content.toString());
-        }, {
-            noAck: true
-        });
     });
-  });
+}
+
+module.exports={
+    getMessageFromChannelQueue
+};

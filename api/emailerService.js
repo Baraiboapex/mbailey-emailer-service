@@ -1,5 +1,4 @@
 //const emailSender = require("./emailSendingAlgorithm/senderAlgorithm");
-const WorkerPool = require("./emailSendingAlgorithm/workerPool");
 const jsonHelper = require("./helpers/jsonHelpers");
 const bodyParser = require("body-parser");
 const express = require("express");
@@ -10,6 +9,17 @@ const app = express.Router();
 const {
     validateObjectFields
 } = require("./helpers/dataValidationHelpers");
+
+const {
+    EMAIL_MESSENGER_EVENT_QUEUE_NAME
+} = require("./messager/queNames");
+
+const {
+    addToChannelQueue
+} = require("./messager/send");
+const {
+    buildMessageSender
+} = require("./messager/builder");
 
 app.use(bodyParser.json({ type: "application/json" }));
 
@@ -58,19 +68,22 @@ app.post("/sendEmail",async (req, res)=>{
             fieldsToValidate:SEND_EMAIL_API_FIELD_VALIDATORS
         });
 
-        const pool = new WorkerPool({
-            numThreads:2,
-            workers:[
-                {workerName:"senderAlgorithm", workerData:buildEmailData}
-            ]
-        });
-
         if(fieldValidatorResult.allFieldsAreValid){
             
-            pool.runTask(buildEmailData, (err, result) => {
-                pool.close();
+            buildMessageSender({
+                messagerUrl:process.env.RABIT_MQ_URL
+            }).connectToMessageServer().then((channelResponse)=>{
+                channelResponse.getChannel((ch)=>{
+                    addToChannelQueue({
+                        messageData:JSON.stringify(buildEmailData),
+                        nameOfChannelQueue:EMAIL_MESSENGER_EVENT_QUEUE_NAME,
+                        channelData:ch
+                    });
+                });
+            }).catch((err)=>{
+                console.log("ERR",err);
             });
-    
+            
             res.status(200).send(JSON.stringify({
                 success:true,
                 message:"Sending your emails!"
@@ -78,7 +91,6 @@ app.post("/sendEmail",async (req, res)=>{
         }else{
             throw new Error("All required fields are not filled out or are not correct. \n Missed Fields:" + fieldValidatorResult.invalidFields);
         }
-
     }catch(err){
         const getJsonErrorData = (jsonHelper.tryParsingJson(err) ? jsonHelper.tryParsingJson(err) : err);
 
