@@ -1,7 +1,11 @@
-const nodemailer = require('nodemailer');
-const {
-    Worker, isMainThread, workerData
+
+const { 
+    isMainThread, workerData
   } = require('node:worker_threads');
+
+const {
+    cache
+} = require("../../setup.js");
 
   const {
     hashes
@@ -24,16 +28,14 @@ const {
         hashDb.closeDatabaseConnection();
     };
 
-    sendEmailProcess(workerData)
-    
-    function sendEmailProcess({
+    const sendEmailProcess = ({
         messageSenderAddress,
         emailAddress,
         emailSubject,
         emailTemplate,
         emailData,
         emailHashId
-    }){
+    })=>{
         return new Promise(async (resolve, reject)=>{
             try{
                 const hDb = await hashDb();
@@ -49,18 +51,6 @@ const {
                     templateName:emailTemplate,
                     emailData
                 });
-                
-                const emailSenderConfig = {
-                    service: 'gmail',
-                    secure: false,
-                    pool: true,
-                    host: 'smtp.gmail.com',
-                    port: 465,
-                    auth: {
-                        user: messageSenderAddress,
-                        pass: "ymbwquvjkxqhooxg"//process.env.EMAILER_SERVICE_PASSWORD
-                    }
-                }
 
                 const mailToOptions = {
                     from:  messageSenderAddress,
@@ -69,23 +59,25 @@ const {
                     html: currentEmailTemplate
                 };
 
-                const emailSender =  nodemailer.createTransport(emailSenderConfig);
+                const emailer = cache.get("emailerConfig")
 
-                emailSender.sendMail(mailToOptions, (err,info)=>{
-                    if(err){
-                        closeSenderAndHashDBConnections({
-                            emailSender,
-                            hashDb:hDb
-                        });
-                        reject(err);
-                    }else{
-                        closeSenderAndHashDBConnections({
-                            emailSender,
-                            hashDb:hDb
-                        });
-                        resolve(info);
-                    }
-                });
+                console.log("SENDER", emailer);
+
+                // emailer.sendMail(mailToOptions, (err,info)=>{
+                //     if(err){
+                //         closeSenderAndHashDBConnections({
+                //             emailSender,
+                //             hashDb:hDb
+                //         });
+                //         reject(err);
+                //     }else{
+                //         closeSenderAndHashDBConnections({
+                //             emailSender,
+                //             hashDb:hDb
+                //         });
+                //         resolve(info);
+                //     }
+                // });
             }catch(err){
                 console.log(err);
                 reject(JSON.stringify({
@@ -95,5 +87,7 @@ const {
             }
         }); 
     }
+
+    sendEmailProcess(workerData)
   }
 

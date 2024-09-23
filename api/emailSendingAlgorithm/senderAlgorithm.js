@@ -16,30 +16,40 @@ const {
   } = require('node:worker_threads');
   
   if(isMainThread){
-    buildMessageSender({
-        messagerUrl:process.env.RABIT_MQ_URL
-    }).connectToMessageServer().then((channelResponse)=>{
-        channelResponse.getChannel((ch)=>{
-            getMessageFromChannelQueue({
-                nameOfChannelQueue:EMAIL_MESSENGER_EVENT_QUEUE_NAME,
-                channelData:ch,
-                callback:(emailData)=>{
-                    const pool = new WorkerPool({
-                        numThreads:2,
-                        workers:[
-                            {workerName:"senderAlgorithm", workerData:emailData}
-                        ]
-                    });
-
-                    pool.runTask(emailData, (err, result) => {
-                        pool.close();
-                    });
-                }
+    function createEmailListener({
+        funcToExecuteOnEmailRecieved,
+    }){
+        return new Promise((resolve,reject)=>{
+            buildMessageSender({
+                messagerUrl:process.env.RABIT_MQ_URL
+            }).connectToMessageServer().then((channelResponse)=>{
+                channelResponse.getChannel((ch)=>{
+                    const checkHasNeededFunctions = ch.assertQueue && ch.sendToQueue;
+                    const data = ch;
+                    if(checkHasNeededFunctions){
+                        getMessageFromChannelQueue({
+                            nameOfChannelQueue:EMAIL_MESSENGER_EVENT_QUEUE_NAME,
+                            channelData:ch,
+                            callback:funcToExecuteOnEmailRecieved
+                        });
+                        resolve(()=>data);
+                    }else{
+                        reject({
+                            succes:false,
+                            message:"Missing base required functions"
+                        })
+                    }
+                });
+            }).catch((err)=>{
+                reject(err);
+                console.log("ERR",err);
             });
         });
-    }).catch((err)=>{
-        console.log("ERR",err);
-    });
+      }
+      
+      module.exports={
+        createEmailListener
+      }
   }else{
     const SERVICE_INTERVAL_TIMEOUT = 10000;
     setTimeout(()=>{
@@ -132,6 +142,8 @@ const {
                         }
                     }
                 }
+
+                console.log("ALL EMAILS SENT!!!");
             }catch(err){
                 console.log("ERRRRRRR",err);
                 throw new Error(JSON.stringify({
