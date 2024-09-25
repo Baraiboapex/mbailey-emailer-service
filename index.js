@@ -5,12 +5,14 @@ const cors = require("cors");
 require("dotenv").config();
 const ex_app = express();
 
-const {
-    setupEmailer,
-    setupMessageBroker
-} = require("./setup");
+const Data = require("./setupManager");
 
-setupEmailer();
+const data = Data.instance;;
+
+const {
+    setupMessageBroker
+} = data.setupMainService();
+
 setupMessageBroker();
 
 const mainService = require("./api/emailerService");

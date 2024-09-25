@@ -1,16 +1,29 @@
 
+/*
+    DO NOT USE THIS FILE DIRECTLY PLEASE!
+    USE THE PROVIDED SETUP MANAGER IN ORDER
+    TO USE THESE SERVICES TO PREVENT CIRCULAR
+    DEPENDENCY ERRORS. THANKS!
+
+    -BARAIBOAPEX =(0-0)=
+*/
 const NodeCache = require("node-cache");
 const nodemailer = require("nodemailer");
 
 const cache = new NodeCache();
 
 const WorkerPool = require("./api/emailSendingAlgorithm/workerPool");
+
 const {
     createEmailListener
-} = require("./api/emailSendingAlgorithm/senderAlgorithm");
+} = require("./api/emailSendingAlgorithm/emailListenerBuilder");
+
+const {
+    hashes
+} = require("./repositories/firebaseDbRepository");
 
 const setupEmailer = async ()=>{
-    
+    console.log("EMAILER SETUP");
     const emailSenderConfig = {
         service: 'gmail',
         secure: false,
@@ -52,8 +65,23 @@ const setupMessageBroker = async ()=>{
     cache.set("messageBrokerConfig", brokerConfig, 20000);
 }
 
+const setupFirebaseHashesDb = async ()=>{
+    const hDb = await hashes().buildDatabase();
+
+    const getHash = {
+        getSnapshot:async(emailHashId)=>await (hDb).getData({ 
+            authData: { 
+                hashId:emailHashId 
+            }
+        })
+    };
+
+    cache.set("firebaseHashConfig", getHash, 20000);
+}
+
 module.exports={
     cache,
     setupEmailer,
-    setupMessageBroker
+    setupMessageBroker,
+    setupFirebaseHashesDb
 };

@@ -9,7 +9,7 @@ function getMessageFromChannelQueue({
                 durable: true
             });
 
-            channelData.prefetch(2);
+            channelData.prefetch(1);
 
             console.log(" [*] Waiting for email messages in %s. To exit press CTRL+C", nameOfChannelQueue);
             

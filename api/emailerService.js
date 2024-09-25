@@ -19,7 +19,7 @@ const {
 
 const {
     cache
-} = require("../setup")
+} = require("../setup");
 
 app.use(bodyParser.json({ type: "application/json" }));
 
