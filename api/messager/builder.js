@@ -11,7 +11,7 @@ function buildMessageSender({
               try{
                 amqp.connect(messagerUrl, function(error0, connection){
                   if (error0) {
-                    console.log("NOPE");
+                    console.log("CNNOT CONNECT TO RABBIT MQ");
                     reject({
                       success:false,
                       message:error0
@@ -19,7 +19,7 @@ function buildMessageSender({
                   }else{
                     connection.createChannel((error1, channel)=>{
                       if (error1) {
-                        console.log("NOPE");
+                        console.log("CANNOT CREATE CHANNEL");
                         reject({
                           success:false,
                           message:error1
