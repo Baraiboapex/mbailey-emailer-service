@@ -16,12 +16,6 @@ primary_region = 'mia'
   min_machines_running = 0
   processes = ['app']
 
-[env]
-
-  #-----rabbit mq config-----
-  RABIT_MQ_URL="amqp://localhost"
-  #-----rabbit mq config-----
-
   #-----main config------
   CURRENT_PORT = "4000"
   NODE_DEBUG="email-templates node app.js"

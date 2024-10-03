@@ -4,10 +4,9 @@ const cors = require("cors");
 
 require("dotenv").config();
 const ex_app = express();
-
 const Data = require("./setupManager");
 
-const data = Data.instance;;
+const data = Data.instance;
 
 const {
     setupMessageBroker
