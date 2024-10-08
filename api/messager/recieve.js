@@ -6,7 +6,7 @@ function getMessageFromChannelQueue({
     return new Promise((resolve,reject)=>{
         try{
             channelData.assertQueue(nameOfChannelQueue, {
-                durable: true
+                durable: false
             });
 
             channelData.prefetch(1);
@@ -15,7 +15,6 @@ function getMessageFromChannelQueue({
             
             channelData.consume(nameOfChannelQueue, function(msg) {
                 if(msg.content){
-                    console.log("DONE!");
                     channelData.ack(msg);
                     resolve({
                         success:true,

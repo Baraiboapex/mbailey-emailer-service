@@ -26,6 +26,7 @@ class WorkerPool extends EventEmitter {
 }) {
     super();
     this.numThreads = numThreads;
+    //this.workers = {};
     this.workers = [];
     this.freeWorkers = [];
     this.tasks = [];
@@ -73,11 +74,12 @@ class WorkerPool extends EventEmitter {
       worker.on('error', (err) => {
         // In case of an uncaught exception: Call the callback that was passed to
         // `runTask` with the error.
-        if (worker[kTaskInfo])
-            worker[kTaskInfo].done(err, null);
-        else
-        console.log("ERROR IN POOL", err);
+        if (worker[kTaskInfo]){
+          worker[kTaskInfo].done(err, null);
+        }else{
+          console.log("ERROR IN POOL", err);
             this.emit('error', err);
+        }
         // Remove the worker from the list and start a new Worker to replace the
         // current one.
         this.workers.splice(this.workers.indexOf(worker), 1);
@@ -107,7 +109,9 @@ class WorkerPool extends EventEmitter {
   }
 
   close() {
-    for (const worker of this.workers) worker.terminate();
+    for (const worker of this.workers){
+      worker.terminate();
+    } 
   }
 }
 
