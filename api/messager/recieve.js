@@ -6,7 +6,7 @@ function getMessageFromChannelQueue({
     return new Promise((resolve,reject)=>{
         try{
             channelData.assertQueue(nameOfChannelQueue, {
-                durable: false
+                durable: true
             });
 
             channelData.prefetch(1);

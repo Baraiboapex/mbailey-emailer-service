@@ -52,7 +52,7 @@ const {
             try{
                 
                 if(peopleToSendEmailTo){
-                    const amountOfEmailsSentBeforePause = 5;
+                    const amountOfEmailsSentBeforePause = 10;
                     const emailListLength = peopleToSendEmailTo.length;
                     let currentIndex = 0;
                     let timesSent = 0;
@@ -70,45 +70,44 @@ const {
                         numThreads:amountOfEmailsSentBeforePause,
                     });
 
-                    while(currentIndex <= emailListLength){
-                        for(let i = 0; i <= amountOfEmailsSentBeforePause; i++){
-                            if(peopleToSendEmailTo[i]){
-                                timesSent++;
-                                const emailAddress = peopleToSendEmailTo[i][2];
-                                const isSubscribed = peopleToSendEmailTo[i][4] === "Yes";
-                                
-                                const getHash = await cache.get("firebaseHashConfig").getSnapshot(peopleToSendEmailTo[i][5]);
+                    for(let i = 0; i <= emailListLength; i++){
+                        if(peopleToSendEmailTo[i]){
+                            timesSent++;
+                            const emailAddress = peopleToSendEmailTo[i][2];
+                            const isSubscribed = peopleToSendEmailTo[i][4] === "Yes";
+                            
+                            const getHash = await cache.get("firebaseHashConfig").getSnapshot(peopleToSendEmailTo[i][5]);
 
-                                emailDataToSend.emailAddress = emailAddress;
-                                emailDataToSend.emailHashId = getHash;
+                            emailDataToSend.emailAddress = emailAddress;
+                            emailDataToSend.emailHashId = getHash;
 
-                                pool.addNewWorker({
-                                    workerName:"emailSender",
-                                    workerData:emailDataToSend
-                                });
-        
-                                if(isSubscribed){
-                                    pool.runTask(emailDataToSend, async (err, result) => {
-                                        if(err){
-                                            console.log(err);
-                                            pool.close();
-                                            throw new Error(JSON.stringify({
-                                                success:false,
-                                                errorMessage:err
-                                            }));
-                                        }
+                            pool.addNewWorker({
+                                workerName:"emailSender",
+                                workerData:emailDataToSend
+                            });
+    
+                            if(isSubscribed){
+                                pool.runTask(emailDataToSend, async (err, result) => {
+                                    if(err){
+                                        console.log(err);
                                         pool.close();
-                                    });
-                                }
-                                
-                                if(timesSent >= amountOfEmailsSentBeforePause){
-                                    await pauseSendingAlgorithm();
-                                    timesSent = 0;
-                                }
-        
-                                currentIndex++;
+                                        throw new Error(JSON.stringify({
+                                            success:false,
+                                            errorMessage:err
+                                        }));
+                                    }
+                                    pool.close();
+                                });
                             }
+                            
+                            if(timesSent >= amountOfEmailsSentBeforePause){
+                                await pauseSendingAlgorithm();
+                                timesSent = 0;
+                            }
+    
+                            currentIndex++;
                         }
+                        
                     }
 
                 }else{

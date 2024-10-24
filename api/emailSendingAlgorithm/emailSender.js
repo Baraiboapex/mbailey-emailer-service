@@ -55,7 +55,9 @@ const startEmailerProcess = async () =>{
                         };
         
                         const emailer = cache.get("emailerConfig");
-        
+                        
+                        console.log("EMAIL SENDING TO:" + emailAddress);
+
                         emailer.sendMail(mailToOptions, (err,info)=>{
                             if(err){
                                 closeSenderConnection({
@@ -64,6 +66,7 @@ const startEmailerProcess = async () =>{
                                 });
                                 throw new Error("Email Not Sent: " + err);
                             }else{
+                                console.log("EMAIL SENT TO:" + emailAddress);
                                 closeSenderConnection({
                                     emailSender,
                                     hashDb:hDb
