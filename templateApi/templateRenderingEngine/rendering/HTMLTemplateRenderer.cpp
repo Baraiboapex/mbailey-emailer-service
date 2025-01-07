@@ -17,8 +17,8 @@ void HTMLTemplateRenderer<Databases, HTMLOutputType, HTMLInputType>::BuildTempla
     
     this->finalRender += currentDb["HtmlTemplateHeaderDb"]->db["emailDefaultHeader"];
 
-    const Task htmlTemplateHeaderDb = db["BaseHTMLDb"]->db[""];
-    const Task htmlElementDb = db["HtmlElementDb"]->;
+    const Task htmlTemplateHeaderDb = db["BaseHTMLDb"];
+    const Task htmlElementDb = db["HtmlElementDb"];
 
     for(
         auto mapIterator = currentDb.begin(); 

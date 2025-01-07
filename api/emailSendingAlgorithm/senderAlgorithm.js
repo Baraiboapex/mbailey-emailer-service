@@ -69,7 +69,7 @@ const {
                     const pool = new WorkerPool({
                         numThreads:amountOfEmailsSentBeforePause,
                     });
-                    
+
                     console.log(emailListLength);
 
                     for(let currentIndex = 0; currentIndex <= emailListLength; currentIndex++){
@@ -90,10 +90,8 @@ const {
                             });
     
                             if(isSubscribed){
-<<<<<<< HEAD
                                 console.log(getHash, currentIndex);
-=======
->>>>>>> 7fb0e63d9fb1624baeca0a2672a5f1cc0a4f9b7e
+
                                 pool.runTask(emailDataToSend, async (err, result) => {
                                     if(err){
                                         console.log(err);
@@ -105,13 +103,10 @@ const {
                                     }
                                     pool.close();
                                 });
-<<<<<<< HEAD
                             }
                             if(timesSent >= amountOfEmailsSentBeforePause){
                                 await pauseSendingAlgorithm();
                                 timesSent = 0;
-=======
->>>>>>> 7fb0e63d9fb1624baeca0a2672a5f1cc0a4f9b7e
                             }
                             
                             if(timesSent >= amountOfEmailsSentBeforePause){
@@ -121,11 +116,8 @@ const {
     
                             currentIndex++;
                         }
-<<<<<<< HEAD
                         currentIndex++;
-=======
-                        
->>>>>>> 7fb0e63d9fb1624baeca0a2672a5f1cc0a4f9b7e
+
                     }
 
                 }else{
