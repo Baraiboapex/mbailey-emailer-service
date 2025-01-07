@@ -1,10 +1,10 @@
 
 const { 
-    isMainThread, workerData
-  } = require('node:worker_threads');
+    isMainThread, 
+    workerData
+} = require('node:worker_threads');
 
 const Data = require("../../setupManager.js");
-
 const data = Data.instance;
 
 const {
@@ -35,12 +35,13 @@ const startEmailerProcess = async () =>{
                 emailAddress,
                 emailSubject,
                 emailTemplate,
-                emailData
+                emailData,
+                emailHashId
             })=>{
                 return new Promise(async (resolve, reject)=>{
                     try{
-                           
-                        emailData.emailUrl = setupEmailUrl(emailData.emailHashId, emailAddress);
+                        console.log("TEST ==> ", emailHashId);
+                        emailData.emailUrl = setupEmailUrl(emailHashId, emailAddress);
         
                         const currentEmailTemplate = await generateHTMLTemplate({
                             templateName:emailTemplate,
@@ -58,12 +59,14 @@ const startEmailerProcess = async () =>{
         
                         emailer.sendMail(mailToOptions, (err,info)=>{
                             if(err){
+                                console.log("NO", err);
                                 closeSenderConnection({
                                     emailSender,
                                     hashDb:hDb
                                 });
                                 throw new Error("Email Not Sent: " + err);
                             }else{
+                                console.log("EMAIL SENT TO: "+ emailAddress);
                                 closeSenderConnection({
                                     emailSender,
                                     hashDb:hDb

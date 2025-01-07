@@ -85,7 +85,6 @@ app.post("/sendEmail",async (req, res)=>{
         }else{
             throw new Error("All required fields are not filled out or are not correct. \n Missed Fields:" + fieldValidatorResult.invalidFields);
         }
-
     }catch(err){
         const getJsonErrorData = (jsonHelper.tryParsingJson(err) ? jsonHelper.tryParsingJson(err) : err);
 
@@ -102,7 +101,6 @@ app.post("/sendEmail",async (req, res)=>{
             })); 
         }
     }
-    
 });
 
 module.exports = app;

@@ -32,6 +32,7 @@ const {
             emailTemplate,
             peopleToSendEmailTo,
             emailData
+            //index
         }
     
         function pauseSendingAlgorithm(){
@@ -54,7 +55,6 @@ const {
                 if(peopleToSendEmailTo){
                     const amountOfEmailsSentBeforePause = 5;
                     const emailListLength = peopleToSendEmailTo.length;
-                    let currentIndex = 0;
                     let timesSent = 0;
         
                     const emailDataToSend = {
@@ -70,45 +70,45 @@ const {
                         numThreads:amountOfEmailsSentBeforePause,
                     });
 
-                    while(currentIndex <= emailListLength){
-                        for(let i = 0; i <= amountOfEmailsSentBeforePause; i++){
-                            if(peopleToSendEmailTo[i]){
-                                timesSent++;
-                                const emailAddress = peopleToSendEmailTo[i][2];
-                                const isSubscribed = peopleToSendEmailTo[i][4] === "Yes";
-                                
-                                const getHash = await cache.get("firebaseHashConfig").getSnapshot(peopleToSendEmailTo[i][5]);
+                    console.log(emailListLength);
 
-                                emailDataToSend.emailAddress = emailAddress;
-                                emailDataToSend.emailHashId = getHash;
+                    for(let currentIndex = 0; currentIndex <= emailListLength; currentIndex++){
+                        
+                        if(peopleToSendEmailTo[currentIndex]){
+                            timesSent++;
+                            const emailAddress = peopleToSendEmailTo[currentIndex][2];
+                            const isSubscribed = peopleToSendEmailTo[currentIndex][4] === "Yes";
+                            
+                            const getHash = await cache.get("firebaseHashConfig").getSnapshot(peopleToSendEmailTo[currentIndex][5]);
 
-                                pool.addNewWorker({
-                                    workerName:"emailSender",
-                                    workerData:emailDataToSend
-                                });
-        
-                                if(isSubscribed){
-                                    pool.runTask(emailDataToSend, async (err, result) => {
-                                        if(err){
-                                            console.log(err);
-                                            pool.close();
-                                            throw new Error(JSON.stringify({
-                                                success:false,
-                                                errorMessage:err
-                                            }));
-                                        }
+                            emailDataToSend.emailAddress = emailAddress;
+                            emailDataToSend.emailHashId = getHash.Hash;
+
+                            pool.addNewWorker({
+                                workerName:"emailSender",
+                                workerData:emailDataToSend
+                            });
+    
+                            if(isSubscribed){
+                                console.log(getHash, currentIndex);
+                                pool.runTask(emailDataToSend, async (err, result) => {
+                                    if(err){
+                                        console.log(err);
                                         pool.close();
-                                    });
-                                }
-                                
-                                if(timesSent >= amountOfEmailsSentBeforePause){
-                                    await pauseSendingAlgorithm();
-                                    timesSent = 0;
-                                }
-        
-                                currentIndex++;
+                                        throw new Error(JSON.stringify({
+                                            success:false,
+                                            errorMessage:err
+                                        }));
+                                    }
+                                    pool.close();
+                                });
+                            }
+                            if(timesSent >= amountOfEmailsSentBeforePause){
+                                await pauseSendingAlgorithm();
+                                timesSent = 0;
                             }
                         }
+                        currentIndex++;
                     }
 
                 }else{
