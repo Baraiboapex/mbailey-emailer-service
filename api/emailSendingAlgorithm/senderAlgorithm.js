@@ -53,7 +53,7 @@ const {
             try{
                 
                 if(peopleToSendEmailTo){
-                    const amountOfEmailsSentBeforePause = 5;
+                    const amountOfEmailsSentBeforePause = 10;
                     const emailListLength = peopleToSendEmailTo.length;
                     let timesSent = 0;
         
@@ -70,6 +70,7 @@ const {
                         numThreads:amountOfEmailsSentBeforePause,
                     });
 
+<<<<<<< HEAD
                     console.log(emailListLength);
 
                     for(let currentIndex = 0; currentIndex <= emailListLength; currentIndex++){
@@ -84,13 +85,29 @@ const {
                             emailDataToSend.emailAddress = emailAddress;
                             emailDataToSend.emailHashId = getHash.Hash;
 
+=======
+                    for(let i = 0; i <= emailListLength; i++){
+                        if(peopleToSendEmailTo[i]){
+                            timesSent++;
+                            const emailAddress = peopleToSendEmailTo[i][2];
+                            const isSubscribed = peopleToSendEmailTo[i][4] === "Yes";
+                            
+                            const getHash = await cache.get("firebaseHashConfig").getSnapshot(peopleToSendEmailTo[i][5]);
+
+                            emailDataToSend.emailAddress = emailAddress;
+                            emailDataToSend.emailHashId = getHash;
+
+>>>>>>> 7fb0e63d9fb1624baeca0a2672a5f1cc0a4f9b7e
                             pool.addNewWorker({
                                 workerName:"emailSender",
                                 workerData:emailDataToSend
                             });
     
                             if(isSubscribed){
+<<<<<<< HEAD
                                 console.log(getHash, currentIndex);
+=======
+>>>>>>> 7fb0e63d9fb1624baeca0a2672a5f1cc0a4f9b7e
                                 pool.runTask(emailDataToSend, async (err, result) => {
                                     if(err){
                                         console.log(err);
@@ -102,13 +119,27 @@ const {
                                     }
                                     pool.close();
                                 });
+<<<<<<< HEAD
                             }
                             if(timesSent >= amountOfEmailsSentBeforePause){
                                 await pauseSendingAlgorithm();
                                 timesSent = 0;
+=======
+>>>>>>> 7fb0e63d9fb1624baeca0a2672a5f1cc0a4f9b7e
                             }
+                            
+                            if(timesSent >= amountOfEmailsSentBeforePause){
+                                await pauseSendingAlgorithm();
+                                timesSent = 0;
+                            }
+    
+                            currentIndex++;
                         }
+<<<<<<< HEAD
                         currentIndex++;
+=======
+                        
+>>>>>>> 7fb0e63d9fb1624baeca0a2672a5f1cc0a4f9b7e
                     }
 
                 }else{

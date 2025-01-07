@@ -56,7 +56,9 @@ const startEmailerProcess = async () =>{
                         };
         
                         const emailer = cache.get("emailerConfig");
-        
+                        
+                        console.log("EMAIL SENDING TO:" + emailAddress);
+
                         emailer.sendMail(mailToOptions, (err,info)=>{
                             if(err){
                                 console.log("NO", err);
