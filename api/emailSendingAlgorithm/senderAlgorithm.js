@@ -104,20 +104,12 @@ const {
                                     pool.close();
                                 });
                             }
-                            if(timesSent >= amountOfEmailsSentBeforePause){
-                                await pauseSendingAlgorithm();
-                                timesSent = 0;
-                            }
-                            
-                            if(timesSent >= amountOfEmailsSentBeforePause){
-                                await pauseSendingAlgorithm();
-                                timesSent = 0;
-                            }
-    
-                            currentIndex++;
-                        }
-                        currentIndex++;
 
+                            if(timesSent >= amountOfEmailsSentBeforePause){
+                                await pauseSendingAlgorithm();
+                                timesSent = 0;
+                            }
+                        }
                     }
 
                 }else{
@@ -125,11 +117,11 @@ const {
                 }
                 
             }catch(err){
-                console.log("ERRRRRRR",err);
-                throw new Error(JSON.stringify({
-                    success:false,
-                    errorMessage:err
-                }));
+                console.log("ERROR IN SENDER : ",err);
+                // throw new Error(JSON.stringify({
+                //     success:false,
+                //     errorMessage:err
+                // }));
             }
         }
     

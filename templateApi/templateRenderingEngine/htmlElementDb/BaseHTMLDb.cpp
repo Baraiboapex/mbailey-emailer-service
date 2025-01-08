@@ -8,6 +8,7 @@ BaseHTMLDb::BaseHTMLDb(unordered_map<string, string> db) : db(db)
     db["valRep"]=R"(
         {'regex':'{{.*}}'}
     )";
+    
     db["templateHeadline"]=R"(
         {
             'regex':'(\\<\\-\\[heading\\]\\-)(.*?)(\\-\\>)' 
