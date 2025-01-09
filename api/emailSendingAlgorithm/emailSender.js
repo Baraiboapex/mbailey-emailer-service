@@ -8,6 +8,10 @@ const Data = require("../../setupManager.js");
 const data = Data.instance;
 
 const {
+    errorLoggingHelper
+} = require("../helpers/errorLoggingHelpers");
+
+const {
     cache,
     setupEmailer
 } = data.emailerSetup();
@@ -78,6 +82,7 @@ const startEmailerProcess = async () =>{
                         });
                     }catch(err){
                         console.log(err);
+                        errorLoggingHelper(err);
                         // reject(JSON.stringify({
                         //     success:false,
                         //     errorMessage:err
@@ -89,7 +94,7 @@ const startEmailerProcess = async () =>{
             sendEmailProcess(workerData)
           }
     }catch(err){
-        console.log(err);
+        errorLoggingHelper(err);
     }
 }
 
