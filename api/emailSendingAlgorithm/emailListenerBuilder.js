@@ -1,12 +1,9 @@
-
-
 const {
     getMessageFromChannelQueue
 } = require("../messager/recieve");
 const {
     buildMessageSender
 } = require("../messager/builder");
-
 const {
     EMAIL_MESSENGER_EVENT_QUEUE_NAME
 } = require("../messager/queNames");

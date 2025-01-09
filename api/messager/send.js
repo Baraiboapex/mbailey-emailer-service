@@ -2,7 +2,8 @@
 function addToChannelQueue({
   messageData,
   nameOfChannelQueue,
-  channelData
+  channelData,
+  successMessage
 }){
   return new Promise((resolve,reject)=>{
     try{
@@ -19,7 +20,7 @@ function addToChannelQueue({
         
         resolve({
           success:true,
-          message:"Emails are being sent!"
+          message:successMessage
         });
 
       }else{

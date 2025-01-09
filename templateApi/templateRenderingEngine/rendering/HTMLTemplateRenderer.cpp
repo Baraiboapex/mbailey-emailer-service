@@ -18,8 +18,6 @@ void HTMLTemplateRenderer<Databases, HTMLOutputType, HTMLInputType>::BuildTempla
     const Task baseElementDb = db["BaseHTMLDb"];
     const Task htmlElementDb = db["HtmlElementDb"];
     
-    const 
-
     const unordered_map<string,string> parsedJson = currentDb["JSONParser"]->ParseJSON(incommingData);
 
     this->finalRender += currentDb["HtmlTemplateHeaderDb"]->db["emailDefaultHeader"];

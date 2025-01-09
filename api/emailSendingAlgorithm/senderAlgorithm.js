@@ -1,6 +1,10 @@
 const WorkerPool = require("./workerPool");
 
 const {
+    errorLoggingHelper
+} = require("../helpers/errorLoggingHelpers");
+
+const {
     isMainThread, workerData
   } = require('node:worker_threads');
   
@@ -117,11 +121,7 @@ const {
                 }
                 
             }catch(err){
-                console.log("ERROR IN SENDER : ",err);
-                // throw new Error(JSON.stringify({
-                //     success:false,
-                //     errorMessage:err
-                // }));
+                errorLoggingHelper(err);
             }
         }
     

@@ -1,14 +1,3 @@
-    /* what the array will look like for this:
-        const validators = [
-            {
-                fieldName:"fieldName",
-                validatorFunction:(val)=>{
-                    const fieldValidatorGoesHere = null;
-                    return fieldValidatorGoesHere;
-                }
-            },
-        ]
-    */
 function validateObjectFields({objectToValidate, fieldsToValidate}){
     const totalAmountOfFieldsToValidate = Object.keys(objectToValidate).length;
     const fieldsThatAreNotValid = [];

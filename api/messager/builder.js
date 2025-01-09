@@ -11,7 +11,7 @@ function buildMessageSender({
               try{
                 amqp.connect(messagerUrl, function(error0, connection){
                   if (error0) {
-                    console.log("CNNOT CONNECT TO RABBIT MQ");
+                    console.log("CANNOT CONNECT TO RABBIT MQ");
                     reject({
                       success:false,
                       message:error0

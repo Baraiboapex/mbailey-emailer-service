@@ -75,7 +75,8 @@ app.post("/sendEmail",async (req, res)=>{
             addToChannelQueue({
                 messageData:JSON.stringify(buildEmailData),
                 nameOfChannelQueue:EMAIL_MESSENGER_EVENT_QUEUE_NAME,
-                channelData:channelData()
+                channelData:channelData(),
+                successMessage:"Emails are being sent!"
             });
 
             res.status(200).send(JSON.stringify({

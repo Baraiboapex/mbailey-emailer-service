@@ -33,8 +33,8 @@ const dbContainer = {
       return new Promise((resolve, reject) => {
         try{
           if(template){
-            if(auth.templateData){
-              if(auth.templateData.id){
+            if(template.templateData){
+              if(template.templateData.id){
                 get(child(this.dbObject, "/")).then(
                   (snap) => {
                     const allData = snap.val();
