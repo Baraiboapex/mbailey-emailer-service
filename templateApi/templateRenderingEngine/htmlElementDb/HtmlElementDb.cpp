@@ -8,7 +8,6 @@ using namespace std;
 HtmlGenerationDb::HtmlGenerationDb(unordered_map<string, string> db) : BaseHTMLDb(db)
 {
     db["dataGroups"]="{'regex':'(\\w)\\.\n', 'repString':'<p>{{$val}}</p>'}";
-    db["templateMessage"]="{'regex':'(\\w)\\.\n', 'repString':'<p>{{$val}}</p>'}";
 };
 
 string HtmlGenerationDb::GetElementByTypeFromDb(string keyToElType)

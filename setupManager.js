@@ -9,21 +9,35 @@ const {
     cache,
     setupEmailer,
     setupMessageBroker,
+    setupErrorMessageBroker,
     setupFirebaseHashesDb
 } = require("./setup");
 
 class Data {
-    emailerSetup(){return ({
-        cache:cache,
-        setupEmailer:setupEmailer
-    })}
-    senderAlgorithmSetup(){return ({
-        cache:cache,
-        setupFirebaseHashesDb:setupFirebaseHashesDb
-    })}
-    setupMainService(){return ({
-        setupMessageBroker:setupMessageBroker
-    })}
+    emailerSetup(){
+        return ({
+            cache,
+            setupEmailer:setupEmailer
+        });
+    }
+    senderAlgorithmSetup(){
+        return ({
+            cache,
+            setupFirebaseHashesDb:setupFirebaseHashesDb
+        });
+    }
+    setupMainService(){
+        return ({
+            cache,
+            setupMessageBroker
+        });
+    }
+    setupErrorService(){
+        return ({
+            cache,
+            setupErrorMessageBroker
+        });
+    }
 }
 
 module.exports.instance = new Data();

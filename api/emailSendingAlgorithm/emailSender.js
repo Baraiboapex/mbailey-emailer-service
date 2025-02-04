@@ -1,4 +1,3 @@
-
 const { 
     isMainThread, 
     workerData
@@ -6,10 +5,6 @@ const {
 
 const Data = require("../../setupManager.js");
 const data = Data.instance;
-
-const {
-    errorLoggingHelper
-} = require("../helpers/errorLoggingHelpers");
 
 const {
     cache,
@@ -23,7 +18,7 @@ const {
 const startEmailerProcess = async () =>{
     await setupEmailer();
     try{
-        if(!isMainThread){
+        if(isMainThread){
             function setupEmailUrl (hashId, emailAddress){
                 return process.env.EMAIL_UNSUBSCRIBE_LINK + "?email_address="+emailAddress+"&email_hash="+hashId;
             }
@@ -31,6 +26,7 @@ const startEmailerProcess = async () =>{
             const closeSenderConnection = function({
                 emailSender
             }){
+                console.log(emailSender !== undefined, emailSender);
                 emailSender.close();
             };
         
@@ -43,58 +39,51 @@ const startEmailerProcess = async () =>{
                 emailHashId
             })=>{
                 return new Promise(async (resolve, reject)=>{
-                    try{
-                        console.log("TEST ==> ", emailHashId);
-                        emailData.emailUrl = setupEmailUrl(emailHashId, emailAddress);
-        
-                        const currentEmailTemplate = await generateHTMLTemplate({
-                            templateName:emailTemplate,
-                            emailData
-                        });
-        
-                        const mailToOptions = {
-                            from:  messageSenderAddress,
-                            to: emailAddress,
-                            subject: emailSubject,
-                            html: currentEmailTemplate
-                        };
-        
-                        const emailer = cache.get("emailerConfig");
-                        
-                        console.log("EMAIL SENDING TO:" + emailAddress);
+                    console.log("TEST ==> ", emailHashId);
+                    emailData.emailUrl = setupEmailUrl(emailHashId, emailAddress);
+    
+                    const currentEmailTemplate = await generateHTMLTemplate({
+                        templateName:emailTemplate,
+                        emailData
+                    });
+    
+                    const mailToOptions = {
+                        from:  messageSenderAddress,
+                        to: emailAddress,
+                        subject: emailSubject,
+                        html: currentEmailTemplate
+                    };
+    
+                    const emailer = cache.get("emailerConfig");
+                    
+                    console.log("EMAIL SENDING TO:" + emailAddress);
 
-                        emailer.sendMail(mailToOptions, (err,info)=>{
-                            if(err){
-                                console.log("NO", err);
-                                closeSenderConnection({
-                                    emailSender,
-                                    hashDb:hDb
-                                });
-                                throw new Error("Email Not Sent: " + err);
-                            }else{
-                                console.log("EMAIL SENT TO: "+ emailAddress);
-                                closeSenderConnection({
-                                    emailSender,
-                                    hashDb:hDb
-                                });
-                                resolve(info);
-                            }
-                        });
-                    }catch(err){
-                        console.log(err);
-                        errorLoggingHelper(err);
-                        // reject(JSON.stringify({
-                        //     success:false,
-                        //     errorMessage:err
-                        // }));
-                    }
+                    emailer.sendMail(mailToOptions, (err,info)=>{
+                        if(err){
+                            console.log("NO JOJ");
+                            closeSenderConnection({
+                                emailSender:emailer,
+                            });
+                            console.log("FIIIF");
+                            reject("Email Not Sent: " + err);
+                        }else{
+                            console.log("EMAIL SENT TO: "+ emailAddress);
+                            closeSenderConnection({
+                                emailSender:emailer,
+                            });
+                            resolve(info);
+                        }
+                    });
+                }).catch((err)=>{
+                    throw new Error(err);
                 }); 
             }
         
             sendEmailProcess(workerData)
           }
     }catch(err){
-        errorLoggingHelper(err);
+        console.log("Error in sender : " + err);
+        throw new Error(err);
     }
 }
 

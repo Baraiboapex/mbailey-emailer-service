@@ -2,8 +2,8 @@
 
 using namespace std;
 
-#ifndef BASE_ELEMENT_DB
-#define BASE_ELEMENT_DB
+#ifndef I_RENDERER
+#define I_RENDERER
 
 template <typename RendererReturnType, typename IncommingRendererDataType>
 class IRenderer{

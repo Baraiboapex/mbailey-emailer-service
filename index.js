@@ -4,23 +4,15 @@ const cors = require("cors");
 
 require("dotenv").config();
 const ex_app = express();
-const Data = require("./setupManager");
-
-const data = Data.instance;
-
-const {
-    setupMessageBroker
-} = data.setupMainService();
-
-setupMessageBroker();
-
-const mainService = require("./api/emailerService");
 
 ex_app.use(cors({
     origin:"*",
     allowedHeaders:"Content-Type",
     methods:"POST"
 }));
+
+const mainService = require("./api/emailerService");
+
 
 ex_app.use("/", mainService);
 

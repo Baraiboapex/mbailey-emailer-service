@@ -1,42 +1,31 @@
-function getMessageFromChannelQueue({
+const hasCallback = ({callback, message, channelData})=> callback ? callback(JSON.parse(message.content), channelData, message) : null;
+const {NUMBER_OF_CORES_ON_MACHINE} = require("../helpers/environmentHelpers");
+
+async function getMessageFromChannelQueue({
     nameOfChannelQueue,
     channelData,
     callback
 }){
-    return new Promise((resolve,reject)=>{
-        try{
-            channelData.assertQueue(nameOfChannelQueue, {
-                durable: true
-            });
+    try{
+        channelData.assertQueue(nameOfChannelQueue, {
+            durable: true
+        });
 
-            channelData.prefetch(1);
+        channelData.prefetch(NUMBER_OF_CORES_ON_MACHINE);
 
-            console.log(" [*] Waiting for email messages in %s. To exit press CTRL+C", nameOfChannelQueue);
-            
-            channelData.consume(nameOfChannelQueue, function(msg) {
-                if(msg.content){
-                    channelData.ack(msg);
-                    resolve({
-                        success:true,
-                        callback:callback(JSON.parse(msg.content)),
-                    });
-                }else{
-                    reject({
-                        success:false,
-                        message:"Could not send emails"
-                    });
-                }
-            }, {
-                noAck: false
-            });
-        }catch(err){
-            console.log(err);
-            reject({
-                success:false,
-                message:"Could not send emails"
-            });
-        }
-    });
+        console.log(" [*] Waiting for email messages in %s. To exit press CTRL+C", nameOfChannelQueue);
+        
+        channelData.consume(nameOfChannelQueue,(msg)=>{
+            hasCallback({callback, message:msg, channelData});
+        });
+        
+    }catch(err){
+        console.log("NOPE", err);
+        return {
+            success:false,
+            message:"Could not send emails"
+        };
+    }
 }
 
 module.exports={

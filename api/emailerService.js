@@ -7,6 +7,9 @@ const _ = require("lodash");
 
 const app = express.Router();
 
+const Data = require("../setupManager");
+const data = Data.instance;
+
 const {
     addToChannelQueue
 } = require("./messager/send");
@@ -46,8 +49,20 @@ const SEND_EMAIL_API_FIELD_VALIDATORS = [
     },
 ];
 
+const {
+    setupMessageBroker,
+} = data.setupMainService();
+
+const {
+    setupErrorMessageBroker,
+} = data.setupErrorService();
+
+setupErrorMessageBroker();
+setupMessageBroker();
+
 app.post("/sendEmail",async (req, res)=>{
     try{
+        
         const { 
             template, 
             emailData, 
@@ -72,6 +87,8 @@ app.post("/sendEmail",async (req, res)=>{
 
             const channelData = cache.get("messageBrokerConfig");
 
+            console.log("CHANEL DATA", channelData);
+
             addToChannelQueue({
                 messageData:JSON.stringify(buildEmailData),
                 nameOfChannelQueue:EMAIL_MESSENGER_EVENT_QUEUE_NAME,
@@ -87,6 +104,7 @@ app.post("/sendEmail",async (req, res)=>{
             throw new Error("All required fields are not filled out or are not correct. \n Missed Fields:" + fieldValidatorResult.invalidFields);
         }
     }catch(err){
+        console.log(err);
         const getJsonErrorData = (jsonHelper.tryParsingJson(err) ? jsonHelper.tryParsingJson(err) : err);
 
         if(getJsonErrorData){

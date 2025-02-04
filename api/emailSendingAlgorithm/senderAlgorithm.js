@@ -1,11 +1,8 @@
-const WorkerPool = require("./workerPool");
+const SenderQueue = require("./senderQueue");
+const startEmailerProcess = require("./emailSender2");
 
 const {
-    errorLoggingHelper
-} = require("../helpers/errorLoggingHelpers");
-
-const {
-    isMainThread, workerData
+    isMainThread, workerData, parentPort
   } = require('node:worker_threads');
   
   if(!isMainThread){
@@ -19,112 +16,178 @@ const {
         setupFirebaseHashesDb
     } = data.senderAlgorithmSetup();
 
-    const SERVICE_INTERVAL_TIMEOUT = 10000;
-    setTimeout(async ()=>{
-        await setupFirebaseHashesDb();
-        const {
-            messageSenderAddress,
-            emailSubject,
-            emailTemplate,
-            peopleToSendEmailTo,
-            emailData
-        } = workerData;
+    const SERVICE_INTERVAL_TIMEOUT = 20000;
     
-        const workerDataToLoad = {
-            messageSenderAddress,
-            emailSubject,
-            emailTemplate,
-            peopleToSendEmailTo,
-            emailData
-            //index
-        }
+    const {
+        messageSenderAddress,
+        emailSubject,
+        emailTemplate,
+        peopleToSendEmailTo,
+        emailData
+    } = workerData;
+
+    const workerDataToLoad = {
+        messageSenderAddress,
+        emailSubject,
+        emailTemplate,
+        peopleToSendEmailTo,
+        emailData
+        //index
+    };
+
+    function pauseSendingAlgorithm(){
+        return new Promise((resolve, reject)=>{
+            setTimeout(()=>{
+                resolve();
+            },SERVICE_INTERVAL_TIMEOUT);
+        });
+    }
     
-        function pauseSendingAlgorithm(){
-            return new Promise((resolve, reject)=>{
-                setTimeout(()=>{
-                    resolve();
-                },10000);
-            });
-        }
+    async function setupForSending({
+        messageSenderAddress,
+        emailSubject,
+        emailTemplate,
+        peopleToSendEmailTo,
+        emailData,
+        currentIndex,
+        batchArray,
+        amountOfEmailsSentBeforePause,
+        pool2,
+      }){
+        for (
+          let j = currentIndex - (amountOfEmailsSentBeforePause - 1);
+          j <= currentIndex;
+          j++
+        ) {
+            const emailDataToSend = {
+                messageSenderAddress,
+                emailAddress:null,
+                emailSubject,
+                emailTemplate,
+                emailData,
+                emailHashId:null
+            };
+
+            if(peopleToSendEmailTo[j]){
+                console.log("ITERATOR : " + j);
+                const isSubscribed = peopleToSendEmailTo[j][4] === "Yes";
     
-        async function emailWorkerProcess({
-            messageSenderAddress,
-            emailSubject,
-            emailTemplate,
-            peopleToSendEmailTo,
-            emailData
-        }){
-            try{
-                
-                if(peopleToSendEmailTo){
-                    const amountOfEmailsSentBeforePause = 10;
-                    const emailListLength = peopleToSendEmailTo.length;
-                    let timesSent = 0;
-        
-                    const emailDataToSend = {
-                        messageSenderAddress,
-                        emailAddress:null,
-                        emailSubject,
-                        emailTemplate,
-                        emailData,
-                        emailHashId:null
-                    };
+                console.log("EMAIL ADDRESS", peopleToSendEmailTo[j][2], isSubscribed);
+    
+                if(isSubscribed){
+                    const getHash = await cache.get("firebaseHashConfig").getSnapshot(peopleToSendEmailTo[j][5]);
+
+                    const emailAddress = peopleToSendEmailTo[j][2];
+
+                    emailDataToSend.emailAddress = emailAddress;
+                    emailDataToSend.emailHashId = getHash.Hash;
                     
-                    const pool = new WorkerPool({
-                        numThreads:amountOfEmailsSentBeforePause,
-                    });
-
-                    console.log(emailListLength);
-
-                    for(let currentIndex = 0; currentIndex <= emailListLength; currentIndex++){
-                        
-                        if(peopleToSendEmailTo[currentIndex]){
-                            timesSent++;
-                            const emailAddress = peopleToSendEmailTo[currentIndex][2];
-                            const isSubscribed = peopleToSendEmailTo[currentIndex][4] === "Yes";
-                            
-                            const getHash = await cache.get("firebaseHashConfig").getSnapshot(peopleToSendEmailTo[currentIndex][5]);
-
-                            emailDataToSend.emailAddress = emailAddress;
-                            emailDataToSend.emailHashId = getHash.Hash;
-
-                            pool.addNewWorker({
-                                workerName:"emailSender",
-                                workerData:emailDataToSend
-                            });
-    
-                            if(isSubscribed){
-                                console.log(getHash, currentIndex);
-
-                                pool.runTask(emailDataToSend, async (err, result) => {
-                                    if(err){
-                                        console.log(err);
-                                        pool.close();
-                                        throw new Error(JSON.stringify({
-                                            success:false,
-                                            errorMessage:err
-                                        }));
-                                    }
-                                    pool.close();
-                                });
-                            }
-
-                            if(timesSent >= amountOfEmailsSentBeforePause){
-                                await pauseSendingAlgorithm();
-                                timesSent = 0;
-                            }
-                        }
-                    }
-
-                }else{
-                    return;
+                    batchArray.push(emailDataToSend);
+                    
+                    console.log("EMAIL BEING SENT TO : ", emailAddress);
                 }
-                
-            }catch(err){
-                errorLoggingHelper(err);
             }
         }
+
+        batchArray.forEach((item) => {
+            console.log("ITEM", item);
+            pool2.addItemToQueue({
+                taskName: "emailSender",
+                taskProcess: startEmailerProcess,
+                taskData: item,
+            });
+        });
+    }
+
+    async function emailWorkerProcess({
+        messageSenderAddress,
+        emailSubject,
+        emailTemplate,
+        peopleToSendEmailTo,
+        emailData
+    }){
+        try{
+            console.log("RECIEVED");
+            if(peopleToSendEmailTo){
+                if(peopleToSendEmailTo.length > 0){
+                    let batchArray = [];
+                    await setupFirebaseHashesDb();
+                    
+                    const emailListLength = peopleToSendEmailTo.length;
+                    const specifiedSendAmount = 5;
+                    const amountOfEmailsSentBeforePause = (
+                        peopleToSendEmailTo.length > specifiedSendAmount ? specifiedSendAmount : emailListLength
+                    );
+
+                    console.log("STUFF", peopleToSendEmailTo, "LIST LENGTH", emailListLength);
+
+                    let timesSent = 0;
+        
+                    const pool2 = new SenderQueue();
+
+                    if(!pool2.queueInUse){
+                        for(let currentIndex = 0; currentIndex <= emailListLength; currentIndex++){
+                            
+                            timesSent++;
+                              
+                            if(timesSent >= amountOfEmailsSentBeforePause){
+                                setupForSending({
+                                    messageSenderAddress,
+                                    emailSubject,
+                                    emailTemplate,
+                                    peopleToSendEmailTo,
+                                    emailData,
+                                    currentIndex,
+                                    batchArray,
+                                    amountOfEmailsSentBeforePause,
+                                    pool2,
+                                });
+                                await pauseSendingAlgorithm();
+                                await pool2.runQueueTasks();
+                                console.log(timesSent);
+                                batchArray = [];
+                                timesSent = 0;
+                            } else if (currentIndex + amountOfEmailsSentBeforePause === emailListLength - 1) {
+                                setupForSending({
+                                    messageSenderAddress,
+                                    emailSubject,
+                                    emailTemplate,
+                                    peopleToSendEmailTo,
+                                    emailData,
+                                    currentIndex,
+                                    batchArray,
+                                    amountOfEmailsSentBeforePause,
+                                    pool2,
+                                });
+                                console.log("END!");
+                                await pauseSendingAlgorithm();
+                                await pool2.runQueueTasks();
+                                batchArray = [];
+                                timesSent = 0;
+                            }
     
-        emailWorkerProcess(workerDataToLoad);
-    },SERVICE_INTERVAL_TIMEOUT);
+                            if (emailListLength < 2) break;
+                        }
+                        console.log("DONE!");
+                        pool2.clearQueue();
+                        parentPort.postMessage("DONE");
+                    }else{
+                        console.log("QUEUE IS IN USE!!!!");
+                        return;
+                    }
+                }else{
+                    console.log("NOPE!!!! EMPTY LIST");
+                    parentPort.postMessage("DONE");
+                }
+            }else{
+                console.log("LOL REALLY? NO LIST!!!");
+                parentPort.postMessage("DONE");
+            }
+            
+        }catch(err){
+            console.log("error in email sender : "+err);
+        }
+    }
+
+    emailWorkerProcess(workerDataToLoad);
   }

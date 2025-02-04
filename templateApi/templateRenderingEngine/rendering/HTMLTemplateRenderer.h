@@ -13,6 +13,13 @@ class HTMLTemplateRenderer : public IRenderer<HTMLOutputType, HTMLInputType> {
     private:
         Databases databases;
         HTMLOutputType finalRender;
+        //ADD SERVER CONNECTOR TYPE HERE 
+        //WHEN YOU GET BACK!!!
+        string CreateRegexAndReplace(
+            string regexPattern,
+            string stringToReplace,
+            string stringToLoad
+        );
     public:
         HTMLTemplateRenderer(Databases database) override;
         void BuildTemplate(HTMLInputType incommingData) override;

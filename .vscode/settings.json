@@ -66,6 +66,7 @@
         "stop_token": "cpp",
         "thread": "cpp",
         "xtree": "cpp",
-        "regex": "cpp"
+        "regex": "cpp",
+        "fstream": "cpp"
     }
 }
