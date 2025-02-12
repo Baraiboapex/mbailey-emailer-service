@@ -13,7 +13,6 @@ ex_app.use(cors({
 
 const mainService = require("./api/emailerService");
 
-
 ex_app.use("/", mainService);
 
 ex_app.set("port", JSON.parse(process.env.CURRENT_PORT) || 4001);

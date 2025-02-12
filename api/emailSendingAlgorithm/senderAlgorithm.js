@@ -183,7 +183,6 @@ const {
                 console.log("LOL REALLY? NO LIST!!!");
                 parentPort.postMessage("DONE");
             }
-            
         }catch(err){
             console.log("error in email sender : "+err);
         }

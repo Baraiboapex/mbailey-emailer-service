@@ -67,6 +67,9 @@
         "thread": "cpp",
         "xtree": "cpp",
         "regex": "cpp",
-        "fstream": "cpp"
+        "fstream": "cpp",
+        "cstdarg": "cpp",
+        "functional": "cpp",
+        "mutex": "cpp"
     }
 }
