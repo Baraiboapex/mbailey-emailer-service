@@ -10,7 +10,6 @@ public:
     TaskArrType GetTaskObject(string taskName) override {
         auto taskIt = this->tasks.find(taskName);
         if(taskIt != this->tasks.end()) {
-            cout << "Found task: " << taskName << endl;
             return taskIt->second;
         } else {
             throw runtime_error("Task not found: " + taskName);

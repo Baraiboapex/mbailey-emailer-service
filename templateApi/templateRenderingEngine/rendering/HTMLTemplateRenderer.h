@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <string>
 #include <regex>
-
+#include <typeinfo>
 #include "./Interfaces/IRenderer.h"
 
 using namespace std;
@@ -21,7 +21,8 @@ class HTMLTemplateRenderer : public IRenderer<HTMLOutputType, HTMLInputType> {
             const string& stringToReplace,
             const string& stringToLoad
         ) {
-            return regex_replace(stringToReplace, regex(regexPattern), stringToLoad);
+            string replacedString = regex_replace(stringToReplace, regex(regexPattern), stringToLoad);
+            return replacedString;
         }
 
     public:
@@ -30,75 +31,71 @@ class HTMLTemplateRenderer : public IRenderer<HTMLOutputType, HTMLInputType> {
         void BuildTemplate(HTMLInputType incommingData) {
             try{
                 const auto currentDb = this->databases;
-                auto& baseElementDb = currentDb->GetTaskObject("BaseHTMLDb");//dynamic_cast<BaseHTMLDb*>(&currentDb->GetTaskObject("BaseHTMLDb").GetTask());
-                auto& htmlElementDbTask = currentDb->GetTaskObject("HtmlGenerationDb");//dynamic_cast<HtmlGenerationDb*>(&currentDb->GetTaskObject("HtmlGenerationDb").GetTask());
-                auto& htmlHeaderDbTask = currentDb->GetTaskObject("HtmlTemplateBaseDb");//dynamic_cast<HtmlGenerationDb*>(&currentDb->GetTaskObject("HtmlGenerationDb").GetTask());
-                auto& jsonParserTask = currentDb->GetTaskObject("JSONParser");//dynamic_cast<JSONParser*>(&currentDb->GetTaskObject("JSONParser").GetTask());
-                
-                #include <typeinfo> // Add this include
+                auto& htmlElementDbTask = currentDb->GetTaskObject("HtmlGenerationDb");
+                auto& htmlHeaderDbTask = currentDb->GetTaskObject("HtmlTemplateBaseDb");
+                auto& jsonParserTask = currentDb->GetTaskObject("JSONParser");
 
                 // Existing code
-                auto baseElementDbGet = dynamic_cast<BaseHTMLDb*>(baseElementDb.GetTask().get());
                 auto htmlElementDbGet = dynamic_cast<HtmlGenerationDb*>(htmlElementDbTask.GetTask().get());
                 auto htmlHeaderDbGet = dynamic_cast<HtmlTemplateBaseDb*>(htmlHeaderDbTask.GetTask().get());
                 auto jsonParserTaskGet = dynamic_cast<JSONParser*>(jsonParserTask.GetTask().get());
                 
-                bool allDbGettersAreNotNull = baseElementDbGet != nullptr && htmlElementDbGet != nullptr && htmlHeaderDbGet != nullptr;
+                bool allDbGettersAreNotNull = htmlElementDbGet != nullptr && 
+                htmlHeaderDbGet != nullptr &&
+                jsonParserTaskGet != nullptr;
+
                 // Check if the dynamic cast was successful
                 if(allDbGettersAreNotNull) {
-                    string valRep = baseElementDbGet->GetHTMLDb("valRep");
-                    string dataGroups = htmlElementDbGet->GetElementByTypeFromDb("dataGroups");
-                    string templateHeadline = baseElementDbGet->GetHTMLDb("templateHeadline");
+                    string templateHeadline = htmlElementDbGet->GetElementByTypeFromDb("templateHeaderInsertToken");
+                    string emailDefaultHeader = htmlHeaderDbGet->GetHtmlTemplateHeader("emailDefaultHeader");
+                    string emailDefaultFooter = htmlHeaderDbGet->GetHtmlTemplateHeader("emailDefaultFooter");
+                    string valReplaceForTemplateReplaceIterator = htmlElementDbGet->GetElementByTypeFromDb("templateValueReplacementToken");
 
-                    // const string replacedHeader = this->CreateRegexAndReplace(
-                    //     parsedBaseHTMLHeadlineJson.at("regex"), 
-                    //     finalRender, 
-                    //     parsedBaseHTMLHeadlineJson.at("repString")
-                    // );
+                    auto parsedBaseHTMLDataJsonHead = jsonParserTaskGet->ParseJSON(emailDefaultHeader);
+                    auto parsedBaseHTMLHeadlineJson = jsonParserTaskGet->ParseJSON(templateHeadline);
+                    auto parsedBaseHTMLFooterJson = jsonParserTaskGet->ParseJSON(emailDefaultFooter);
+                    auto parsedJSONForTemplateIterator = jsonParserTaskGet->ParseJSON(valReplaceForTemplateReplaceIterator);
+                    auto parsedDataJson = jsonParserTaskGet->ParseJSONArrayDataOnly(incommingData);
+
+                    auto repHeaderStringIter = parsedBaseHTMLHeadlineJson.find("repString");
+                    auto regexIter = parsedBaseHTMLHeadlineJson.find("regex");
+                    auto templateHead = parsedBaseHTMLDataJsonHead.find("repString");
+                    auto templateIterator = parsedJSONForTemplateIterator.find("regex");
+
+                    this->finalRender = templateHead->second;
+                    
+                    for(const auto& element : parsedDataJson)
+                    {
+                        string elementToGet = element["elementName"].get<string>() + "InsertToken";
+                        auto iteratorItem = jsonParserTaskGet->ParseJSON(htmlElementDbGet->GetElementByTypeFromDb(elementToGet));
+
+                        this->finalRender += iteratorItem.find("repString")->second;
+
+                        string loadedValue = "{{"+element["loadableValueName"].get<string>()+"}}";
+
+                        string updatedRender = this->CreateRegexAndReplace(
+                            templateIterator->second,
+                            this->finalRender,
+                            loadedValue
+                        );
+
+                        this->finalRender = updatedRender;
+
+                        if(iteratorItem.find("regex") != iteratorItem.end()){
+                            string updatedRender = this->CreateRegexAndReplace(
+                                iteratorItem.find("regex")->second,
+                                this->finalRender,
+                                loadedValue
+                            );
+
+                            this->finalRender = updatedRender;
+                        }
+                    }
+
+                    this->finalRender += parsedBaseHTMLFooterJson.find("repString")->second;
                 } else {
                     cout << "dynamic_cast failed, baseElementDbGet is nullptr" << endl;
                 }
-    
-                //const string temp = baseElementDb->GetHTMLDb("valRep");
-                //const auto parsedBaseHTMLDataJson = jsonParserTask->ParseJSON(baseElementDb->GetHTMLDb("valRep"));
-                // const auto parsedBaseHTMLHeadlineJson =jsonParserTask->ParseJSON(baseElementDb->GetHTMLDb("templateHeadline"));
-                // const auto parsedHTMLElementJson = jsonParserTask->ParseJSON(htmlElementDb->GetElementByTypeFromDb("dataGroups"));
-
-                // const auto htmlTemplateHeaderTask = dynamic_cast<HtmlTemplateBaseDb*>(&currentDb->GetTaskObject("HTMLTemplateHeaderDb").GetTask());
-                // this->finalRender += htmlTemplateHeaderTask->GetHtmlTemplateHeader("emailDefaultHeader");
-
-                // const string replacedHeader = this->CreateRegexAndReplace(
-                //     parsedBaseHTMLHeadlineJson.at("regex"), 
-                //     finalRender, 
-                //     parsedBaseHTMLHeadlineJson.at("repString")
-                // );
-                
-                // this->finalRender = replacedHeader;
-
-                cout << this->finalRender << endl;
-                // const string replacedHeaderText = this->CreateRegexAndReplace(
-                //     parsedBaseHTMLDataJson.at("regex"), 
-                //     finalRender, 
-                //     parsedDataJson.at("customMessageHeaderValue")
-                // );
-
-                // this->finalRender = replacedHeaderText;
-
-                // for (auto mapIterator = parsedDataJson.begin(); mapIterator != parsedDataJson.end(); ++mapIterator) {
-                //     if (mapIterator != parsedDataJson.begin() && !mapIterator->second.empty()) {
-                //         const string addedTemplateDataString = parsedHTMLElementJson.at("repString");
-                //         this->finalRender += addedTemplateDataString;
-                //         const string dataLoadingRegex = parsedHTMLElementJson.at("regex");
-                //         const string replacedDataText = this->CreateRegexAndReplace(
-                //             dataLoadingRegex, 
-                //             finalRender, 
-                //             mapIterator->second
-                //         );
-                //         this->finalRender = replacedDataText;
-                //     }
-                // }
-
-                // this->finalRender += currentDb->GetTaskObject("HTMLTemplateHeaderDb").GetHtmlTemplateHeader("emailDefaultFooter");
             }catch(const runtime_error& e){
                 cout << e.what() << endl;
             }
